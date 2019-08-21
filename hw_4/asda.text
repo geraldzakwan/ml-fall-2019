@@ -1,0 +1,442 @@
+\documentclass[twoside]{homework}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{mathtools}
+\usepackage{times}
+\usepackage{ulem}
+\usepackage[nocenter]{qtree}
+\usepackage{tree-dvips}
+\usepackage{gb4e}
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+
+\studname{Name: Geraldi Dzakwan (gd2551)}
+\coursename{COMS W4111: Introduction to Databases}
+\hwNo{3}
+
+\begin{document}
+\maketitle
+
+\section*{No. 1}
+\boldsymbol{Question:} Suppose you have data that should not be lost on disk failure and the application is write-intensive. How would you store the data? (Note: Your answer should consider differences between primarily sequential writes and primarily random writes). \newline\newline
+\boldsymbol{Answer:} \newline
+We can use RAID to approach this problem (retain data on disk failure) in a relatively cheap manner. Depending on the type of writes (primarily sequential or primarily random), the good RAID choice would be:
+\begin{itemize}
+    \item [1.] If the block writes are primarily sequential, both RAID 1 and RAID 5 are suitable to store the data, i.e. they both will have good performance. But, RAID 5 is slightly more preferred in this case since RAID 1 has more storage overhead.
+    \item [2.] If the block writes are primarily random, then RAID 1 is preferred to store the data. RAID 5 is not suitable because it requires multiple block reads and writes for
+\end{itemize}
+We can also use RAID 1 with three-ways replication (instead of mirroring) to protect from two-disks failure.
+\section*{No. 2}
+\boldsymbol{Question:} Both database management systems (DBMS) and operating systems (OS) provide access to files and implement optimizations for file data access. A DBMS provides significantly better performance for data in databases. How does the DBMS do this? What information does it use? How does it optimize access? Provide some examples. \newline\newline
+\boldsymbol{Answer:} \newline
+A DBMS can predict, with some errors, query access patterns. The DBMS can predict future record block access during scan for SELECT processing and can predict future block access for JOIN processing. The DBMS can gather statistical information about record/block access to infer future access patterns for tables, records and blocks.\newline\newline
+Some examples on how DBMS does the above things are:
+\begin{itemize}
+    \item [1.] Placing sequentially accessed blocks in order in the same cylinder and using adjacent cylinder if the number of blocks exceeds the cylinder's capacity.
+    \item [2.] Prefetching the data into the buffer pool when a scan is in progress to implement a SELECT.
+    \item [3.] Allocating/deallocating data in increment of pages. Logically close pages should also be nearby in the disk.
+    \item [4.] Implementing the suitable buffer replacement policy depending on the access patterns, e.g. LRU, MRU, Clock, FIFO, Random, etc.
+    \item [5.]
+\end{itemize}
+\section*{No. 3}
+\boldsymbol{Question:} Briefly explain CHS addressing and LBA for disks. Which approach is more common and why? Is it possible to convert a CHS address to an LBA. If yes, how?
+
+\section*{No. 4}
+\boldsymbol{Question:} Explain why the allocation of records to blocks affects database-system performance significantly.
+\newline\newline
+\boldsymbol{Answer:} \newline
+For a database-system to access a record, it needs to load the entire block which contains that record into the main memory (RAM). If the allocation of records to blocks are not properly configured then most probably all the other records in the blocks are unrelated to what we seek and this is very inefficient in terms of disk access (I/O).
+\newline\newline
+For example, we're seeking for a hundred of records of students that are enrolled in Columbia Engineering. If they are all located in different blocks, then we need to load a hundred of blocks into main memory to fetch all of them. If the allocation is properly configured, i.e. student records from the same faculty are in the same blocks, then it only requires a few block reads if a block contains let say 30-50 records.
+\newline\newline
+Minimizing block read is important because loading blocks into main memory is a time consuming I/O task. It involves access time, i.e. finding block location on the disk that includes seek time and rotational latency, and data transfer time.
+\newline\newline
+Reference:
+\begin{itemize}
+    \item [1.] https://www.answers.com/Q/5\_Explain\_why\_the\_allocation\_of\_records\_to\_blocks\_affects\_database-system\_performance\_significantly
+    \item [2.] https://www.chegg.com/homework-help/questions-and-answers/1-explain-allocation-records-blocks-affects-database-system-performance-signi-cantly-2-exp-q17332869
+\end{itemize}
+\section*{No. 5}
+\boldsymbol{Question:} Give benefits and disadvantages of variable length record management versus fixed length record management.
+\newline\newline
+\boldsymbol{Answer:} \newline
+Benefits of variable length record management:
+\begin{itemize}
+    \item [1.] It uses the storage efficiently, i.e. it uses the storage just as needed and doesn't use more space for proper allocation.
+    \item [2.] It is more flexible, i.e. can accommodate changes in data.
+    \item [3.]
+\end{itemize}
+
+Disadvantages of variable length record management:
+\begin{itemize}
+    \item [1.] Hard to perform a search as we can't just jump over a set of fixed-length record
+    \item [2.] Also hard for insert and delete
+    \item [3.] When delete is performed, it may result in an unused space if the space is small
+\end{itemize}
+
+Reference: http://www.eli.sdsu.edu/courses/spring95/cs596\_3/notes/databases/lect10.html
+
+
+\newpage
+\section*{No. 6}
+\boldsymbol{Question:} Build and draw a B+ tree after inserting the following values. Assume the maximum degree of the B+ tree is 3.
+\newline\newline
+Values: 3, 11, 12, 9, 4, 6, 21, 9, 15, 2
+\newline\newline
+\boldsymbol{Answer:} \newline
+\begin{figure}[h]
+    \includegraphics[scale=0.47]{DB/B+Tree.png}
+    \caption{B+Tree for Question 6}
+    \label{fig:B+Tree for Question 6}
+\end{figure}
+
+\newpage
+\section*{No. 7}
+\boldsymbol{Question:} Perform the same insertions in the same order for a hash index. Assume that:
+\begin{itemize}
+    \item [1.] The size of the hash table is 13.
+    \item [2.] The hash function is simple modulo.
+    \item [3.] The size of a bucket is one entry.
+    \item [4.] The size of each bucket is one value.
+    \item [5.] The index algorithm uses linear probing to resolve conflicts/duplicates.
+\end{itemize}
+\newline\newline
+\boldsymbol{Answer:} \newline
+\begin{figure}[h]
+    \centering
+    \includegraphics[scale=0.55]{DB/HashIndex.png}
+    \caption{Hash Index for Question 7}
+    \label{fig:Hash Index for Question 7}
+\end{figure}
+
+\section*{No. 8}
+\boldsymbol{Question:} When is it preferable to use dense index rather than a sparse index?
+\newline\newline
+\boldsymbol{Answer:} Below are several situations where dense index is preferable:
+\begin{itemize}
+    \item [1.] Dense index makes more sense when the database table is not sorted on the column that we want to index. For example, suppose we have student records (UNI, First Name and Last Name) such as below. Note that the records are sorted by UNI.
+    \begin{itemize}
+        \item [1.] UNI: an1234; First Name: Amy; Last Name: Neil
+        \item [2.] UNI: bk1234; First Name: Buffalo; Last Name: Keith
+        \item [3.] UNI: cm1234; First Name: Cynthia; Last Name: Mark
+        \item [4.] UNI: dt1234; First Name: Delon; Last Name: Tony
+        \item [5.] UNI: eh1234; First Name: Emma; Last Name: Holly
+        \item [6.] UNI: fl1234; First Name: Freezy; Last Name: Lads
+    \end{itemize}
+    Let say we use sparse index on Last Name column, note that the table is not sorted by Last Name. Suppose we have three indexes as below:
+    \begin{itemize}
+        \item [1.] Holly $\xrightarrow{}$ pointing to record 5
+        \item [2.] Mark $\xrightarrow{}$ pointing to record 3
+        \item [3.] Neil $\xrightarrow{}$ pointing to record 1
+    \end{itemize}
+    Let say we want to find "Keith". The appropriate index to start searching is "Holly" in this case since it's alphabetically before "Keith". But, since "Keith" is located before "Holly" in the actual table, then we couldn't get to "Keith" if we search sequentially from "Holly". Only "Lads" is located after "Holly" and that's not what we want. Thus, sparse index won't work in this scenario and we would use dense index instead.
+    \item [2.] Dense index takes much more space than sparse index. So, it would be efficient only if the size of the dense index file is small compared to the size of memory. If DBMS can load both the index file and the table into memory, then the search would be efficient. Otherwise, we need to either read the index file in part or the table in part and thus requires several page loads which is inefficient.
+    \item [3.] The last case would be when we know that we don't do insertion and deletion to the table frequently. Dense index is much more heavier to maintain than sparse index if we frequently alter the table through insertion or deletion.
+\end{itemize}
+Reference: https://dba.stackexchange.com/questions/172752/when-to-use-a-spare-index-over-a-dense-index (with modifications on the write up and the example)
+
+\section*{No. 9}
+\boldsymbol{Question:} Since indexes improve search/lookup performance, why not create an index on every combination of columns?
+\newline\newline
+\boldsymbol{Answer:} There are several implications regarding indexing every combination of columns:
+\begin{itemize}
+    \item [1.] It slows the insert, update and delete operation. Every time a record is inserted/updated/deleted, each index for the corresponding table must be updated as well. So, indexing every combination of columns for table that we frequently alter would not be a good idea.
+    \item [2.] If the table is large or we have limited memory (RAM), indexing every column might have adverse effect, i.e. instead of improving search/lookup performance, we end up having worse performance. This is because when DBMS uses index, it has to load both the indexes and the records in the table into the memory. If they don't fit into the memory, there are two scenarios:
+    \begin{itemize}
+        \item [1.] DBMS needs to read indexes in part while maintaining full table loaded in RAM. In this case, we need to keep loading the subset of indexes (doing several page loads) until we found the index that matches with the search criteria.
+        \item [2.] DBMS loads full indexes but reads the records in parts, i.e. read some chunks of blocks at a time. In this case, we need to keep loading the blocks until we found a record in the block that is pointed by the index.
+    \end{itemize}
+    Both scenarios are inefficient, they might yield worse performance and take much more space. So, it's a good idea to only index columns that matter, for example, primary key columns or columns that are frequently used in the WHERE clause.
+\end{itemize}
+\newline\newline
+Reference: https://stackoverflow.com/questions/5446124/mysql-why-not-index-every-field
+
+\section*{No. 10}
+\boldsymbol{Question:} Consider the table below. Add indexes that you think are appropriate for the table and explain your choices. You may use MySQL workbench to add the indexes. Paste the resulting create statement in the answer section. Choosing indexes is not possible without understanding use cases/access patterns. Define five use cases and the index you define to support the use case. See the answer section for an example.
+\newline\newline
+CREATE TABLE IF NOT EXISTS `customers` (\newline
+	`id` INT(11) NOT NULL AUTO\_INCREMENT,\newline
+    `company` VARCHAR(50) NULL DEFAULT NULL,\newline
+    `last\_name` VARCHAR(50) NULL DEFAULT NULL,\newline
+    `first\_name` VARCHAR(50) NULL DEFAULT NULL,\newline
+    `email\_address` VARCHAR(50) NULL DEFAULT NULL,\newline
+    `job\_title` VARCHAR(50) NULL DEFAULT NULL,\newline
+    `business\_phone` VARCHAR(25) NULL DEFAULT NULL,\newline
+    `home\_phone` VARCHAR(25) NULL DEFAULT NULL,\newline
+    `mobile\_phone` VARCHAR(25) NULL DEFAULT NULL,\newline
+    `fax\_number` VARCHAR(25) NULL DEFAULT NULL,\newline
+    `address` LONGTEXT NULL DEFAULT NULL,\newline
+    `city` VARCHAR(50) NULL DEFAULT NULL,\newline
+    `state\_province` VARCHAR(50) NULL DEFAULT NULL,\newline
+    `zip\_postal\_code` VARCHAR(15) NULL DEFAULT NULL,\newline
+    `country\_region` VARCHAR(50) NULL DEFAULT NULL
+)
+\newline\newline
+\boldsymbol{Answer:} \newline
+First, to make the create table statement working, I define the column `id` as the primary key by modifying the statement into: `id` INT(11) NOT NULL PRIMARY KEY AUTO\_INCREMENT. Otherwise, it will yield an error. Below are the 5 use cases:
+\begin{itemize}
+    \item [1.] Use Case 1: \newline
+    A user wants to be able to find a customer(s) by 1. country\_region; 2. country\_region and state\_province; 3. country\_region, state\_province and city; 4. city.\newline\newline
+    Let's look for each combination of column:
+    \begin{itemize}
+        \item [1.] Query by country\_region. Since country\_region is not unique (so does the others: state province
+        Index:
+        \item [2.] Query by country\_region and state\_province
+    \end{itemize}
+    CREATE INDEX company\_idx ON customers (company);
+    \item [2.] Use Case 2: Assuming that currently email address is unique, suppose a user wants to be able to find a customer by his/her email address, e.g. for marketing purpose. The user also wants to ensure that new customer has unique email address. We can simply create a UNIQUE index in this case which serves for two purposes at the same time: 1. Speeds up lookup performance; 2. Checking uniqueness on INSERT operation. \newline\newline
+    Index: CREATE UNIQUE INDEX email\_idx ON customers (email\_address);
+    \item [3.] Use Case 3: Assuming that currently the combination of first and last name is unique, suppose a user wants to enforce that new customer can't have the same first and last name so that there aren't multiple accounts. We can simply create a UNIQUE index in this case just like before.\newline\newline
+    Index: CREATE UNIQUE INDEX name\_idx ON customers(first\_name, last\_name);
+    \item [4.] Use Case 2: A user wants to be able to query the customer by company for a broader purpose, e.g. find how many of them are working in retail, in manufacture, etc. \newline\newline
+    Index:
+\end{itemize}
+
+\section*{No. 11}
+\boldsymbol{Answer:}
+\begin{itemize}
+    \item [1.] First, create a temporary file called T1.  T1 will store the hash result for relation R which basically groups tuples in R to three buckets (the hash function is mod 3).
+    \begin{figure}[h]
+        \centering
+        \includegraphics[scale=0.6]{DB/HP1.png}
+        \caption{HP 1 for Question 6}
+        \label{fig:HP 1 for Question 6}
+    \end{figure}
+    \item [2.] Next, create a temporary file called T2. These will do exactly the same as above but for relation S. Thus, I just show the final result (there should be three steps).
+    \begin{figure}[h]
+        \centering
+        \includegraphics[scale=0.6]{DB/HP2.png}
+        \caption{HP 2 for Question 6}
+        \label{fig:HP 2 for Question 6}
+    \end{figure}
+\end{itemize}
+
+\section*{No. 12}
+\boldsymbol{Question:} \newline
+Give three reasons why a query processing engine might use a sort-merge join instead of hash join? What are the key differences between sort-merge and hash join?\newline\newline
+\boldsymbol{Answer:} \newline
+Three reasons why a query processing engine might use a sort-merge join instead hash join:
+\begin{itemize}
+    \item [1.] One or both tables are already sorted on join attribute(s). In this case, we don't have to sort the tables anymore and sort-merge join may perform better than hash join if the relation sizes don't differ greatly.
+    \item [2.] The join outputs need to be sorted on join attribute(s). In this scenario, sort-merge is preferred because the resulting rows will be sorted based on join attribute(s). On the other hand, if we use hash join, we need to sort the resulting table after the join and it can be a heavy operation if the resulting table is huge.
+    \item [3.] The join operation isn't an equijoin. Hash join can only be applied for an equijoin since we can't compare two values (which one is greater or lesser) after they are hashed. Note that this is for Oracle DBMS only, other DBMS such as PostgreSQL doesn't allow inequality for sort merge join.
+    \item [4.] The data in the table is skewed. Hash join is more prone to data skew and thus it is less preferred than sort-merge join in this case.
+    \item [5.] The hash table doesn't fit entirely in memory. The cost will rise considerably if only small portion of the hash table fits, i.e. doing a recursive partitioning or multipass join.
+\end{itemize}
+Key differences between sort-merge and hash join:
+\begin{itemize}
+    \item [1.] Hash join doesn't require the tables to be sorted. Meanwhile, sort-merge join needs to sort both tables before merging. The merging phase functions to match rows from both tables that satisfy the join condition. Because both tables are sorted, we can traverse both tables at the same time (using a cursor for each table and move them forward).
+    \item [2.] Hash join doesn't iterate over both tables. It instead defines some number of buckets and group both tables into those buckets using the same hash function on the join column(s). We can then pair each tuple from a bucket in the left table to each tuple from the corresponding bucket in the right table to produce the join result. The cost is super low when the hash table can be held entirely in memory.
+\end{itemize}
+Reference: \newline
+http://www.cs.cmu.edu/~christos/courses/dbms.S12/slides/15RelOp.pdf
+
+\section*{No. 13}
+\boldsymbol{Question:} \newline
+Let r and s be relations with no indices, and assume that the relations are not sorted. Assuming infinite memory, what is the lowest-cost way (in terms of I/O operations) to compute r $\Join$ s? What is the amount of memory required for this algorithm?
+\newline\newline
+\boldsymbol{Answer:} \newline
+We can use block nested loop join to approach this problem. This algorithm will perform optimally if one of the relation fits entirely in the memory. Particularly, we want to choose the smaller relation to store in the memory, i.e. use that as the inner relation. We then sequentially scan the larger relation blockwise, i.e. use that as outer relation, and perform the block nested loop join. Suppose $b_r$ is the number of blocks needed to hold all tuples in relation r and $b_s$ denotes the same thing for relation s. Then:
+\begin{itemize}
+    \item [1.] There will be $b_r + b_s$ I/O operations/disk accesses.
+    \item [2.] The memory requirement would be: $min(b_r, b_s) + 2\:pages$. Remember that we select the smaller relation to be stored in the memory, so the first part of the memory requirement is just the minimum between $b_r$ and $b_s$. The other two pages are for input and output. One page acts as the input buffer for scanning the inner (smaller) relation and another one acts as the output buffer.
+\end{itemize}
+
+\section*{No. 14}
+\boldsymbol{Question:} Rewrite/transform the following query into an equivalent query that would be significantly more efficient.
+\newline\newline
+SELECT\newline
+    people.playerID, people.nameLast, people.throws,\newline
+	batting.teamid, batting.yearid, ab, h, rbi\newline
+FROM\newline
+	(people JOIN batting using(playerID))\newline
+WHERE teamID='BOS' AND yearID='1960';
+\newline\newline
+\boldsymbol{Answer:} The problem with the query is that it uses full records on Batting to perform the join and the WHERE clause is applied after the join, which is inefficient. To address this issue, a straightforward solution would be to only include rows from Batting that satisfy the WHERE clause condition for the join. Below is the query rewrite.
+\newline\newline
+SELECT\newline
+	t1.playerID, t1.nameLast, t1.throws,\newline
+	t2.teamid, t2.yearid, ab, h, rbi\newline
+FROM\newline
+	(SELECT * FROM people) as t1\newline
+    JOIN\newline
+    (SELECT * FROM batting\newline
+    WHERE teamID='BOS' AND yearID='1960') as t2\newline
+    ON t1.playerID = t2.playerID;
+\newline\newline
+Note that this time the join is between all rows in table People (SELECT * FROM people as t1) and some rows in Batting (SELECT * FROM batting WHERE teamID='BOS' AND yearID='1960' as t2) thus the join involves less rows.
+
+\section*{No. 15}
+\boldsymbol{Question:} Suppose that a B+.
+\newline\newline
+\boldsymbol{Answer:} Suppose that a B+.
+\newline\newline
+Reference: https://www.db-book.com/db6/practice-exer-dir/13s.pdf
+
+\section*{No. 16}
+\boldsymbol{Question:} Consider the following relational algebra expression:
+$$\pi_{a,b,c}(R\Join{}S)$$
+This is a project on the result of a natural join on R and S. Assume that column a comes from R, column B comes from S and that c is the join column. Also assume that both R and S have many large columns. Write an equivalent query that will be more efficient, and explain why.
+\newline\newline
+\boldsymbol{Answer:}\newline
+The problem with the expression is that
+\newline\newline
+Expression rewrite:
+$$\pi_{a,c}(R){}\Join{}\pi_{b,c}(S)$$
+\newline\newline
+
+\section*{No. 17}
+\boldsymbol{Question:} For each of the following isolation levels, give an example of a schedule that respects the specified level of isolation but is not serializable:
+\begin{itemize}
+    \item [1.] Read uncommitted
+    \item [2.] Read committed
+    \item [3.] Repeatable read
+\end{itemize}
+\boldsymbol{Answer:}
+\begin{itemize}
+    \item [1.] Read uncommitted schedule example:
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{||c c||}
+            \hline
+            T1 & T2\\ [1ex]
+            \hline\hline
+            read(A) & \\
+            \hline
+            write(A) & \\
+            \hline
+             & read(A)\\
+            \hline
+             & write(A)\\
+            \hline
+            read(A) & \\
+            \hline
+        \end{tabular}
+        \caption{Read Uncommitted Schedule}
+        \label{table:2}
+    \end{table}
+    \begin{itemize}
+        \item [a.] The schedule is read uncommitted because T2 reads "dirty" data, i.e. it reads the value of item A written by T1 even though T1 is not committed yet.
+        \item [b.] T2 reads data item written by T1 (meaning that T1 precedes T2) and T1 also reads data item written by T2 (meaning that T2 precedes T1). Because there is a cycle, the schedule is not serializable.
+    \end{itemize}
+    \item [2.] Read committed schedule example:
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{||c c||}
+            \hline
+            T1 & T2\\ [1ex]
+            \hline\hline
+            lock-S(A) & \\
+            \hline
+            read(A) & \\
+            \hline
+            unlock(A) & \\
+            \hline
+            & lock-X(A) \\
+            \hline
+            & write(A) \\
+            \hline
+            & unlock(A) \\
+            \hline
+            & commit \\
+            \hline
+            lock-S(A) & \\
+            \hline
+            read(A) & \\
+            \hline
+            unlock(A) & \\
+            \hline
+            commit & \\
+            \hline
+        \end{tabular}
+        \caption{Read Committed Schedule}
+        \label{table:2}
+    \end{table}
+    \begin{itemize}
+        \item [a.] The schedule is read committed because for the second read, T1 reads A after T2 (that writes A) is committed.
+        \item [b.] For the first read, T1 reads A before it is written by T2. Thus T1 precedes T2. For the second read, T1 reads A after it is written by T2. Thus, T2 precedes T1. Because there is a cycle, the schedule is not serializable.
+    \end{itemize}
+    \item [3.] Suppose cond\_read(r, C) means that a transaction reads relation r only for tuples that satisfy condition C. Then, a repeatable read schedule example would be:
+    \begin{table}[h!]
+        \centering
+        \begin{tabular}{||c c||}
+            \hline
+            T1 & T2\\ [1ex]
+            \hline\hline
+            cond\_read(r, C) & \\
+            \hline
+            & insert(s) \\
+            \hline
+            & write(B) \\
+            \hline
+            & commit \\
+            \hline
+            read(B) & \\
+            \hline
+            commit & \\
+            \hline
+        \end{tabular}
+        \caption{Read Committed Schedule}
+        \label{table:2}
+    \end{table}
+    \begin{itemize}
+        \item [a.] Let the record r inserted by transaction T2 satisfies condition C. Because T1 doesn't previously see r for the first read, then the insert performed by T2 means that T2 precedes T1. But then, since the first read transaction is performed by T1, then T1 precedes T2. So, since there is a cycle, it is not serializable.
+    \end{itemize}
+\end{itemize}
+
+\section*{No. 18}
+\boldsymbol{Question:} Explain the difference between a serial schedule and a serializable schedule.
+\newline\newline
+\boldsymbol{Answer:}\newline
+Serial schedule between two or more transactions means that while a transaction is executing, there are no other transactions that can start to execute. The other transactions need to wait until the running transaction ends/completes all its step. In other words, the transactions are executed non-interleaved. For example:
+\newline\newline
+Serializable schedule on the other hand is a non serial schedule (this is quite counterintuitive). It means there may be interleaving between trasanction executions. This is a type of Scheduling where the operations of multiple transactions are interleaved. This might lead to a rise in the concurrency problem. The transactions are executed in a non-serial manner, keeping the end result correct and same as the serial schedule. Unlike the serial schedule where one transaction must wait for another to complete all its operation, in the non-serial schedule, the other transaction proceeds without waiting for the previous transaction to complete. This sort of schedule does not provide any benefit of the concurrent transaction. It can be of two types namely, Serializable and Non-Serializable Schedule.
+The Non-Serial Schedule can be divided further into Serializable and Non-Serializable.
+
+Serializable:
+This is used to maintain the consistency of the database. It is mainly used in the Non-Serial scheduling to verify whether the scheduling will lead to any inconsistency or not. On the other hand, a serial schedule does not need the serializability because it follows a transaction only when the previous transaction is complete. The non-serial schedule is said to be in a serializable schedule only when it is equivalent to the serial schedules, for an n number of transactions. Since concurrency is allowed in this case thus, multiple transactions can execute concurrently. A serializable schedule helps in improving both resource utilization and CPU throughput. These are of two types:
+\newline\newline
+Reference: https://www.geeksforgeeks.org/types-of-schedules-in-dbms/
+
+\section*{No. 19}
+\boldsymbol{Question:} What are the benefits of and disadvantages of strict two phase locking?
+\newline\newline
+\boldsymbol{Answer:} \newline
+When using strict 2PL, a transaction may release all the shared locks after the Lock Point has been reached, but it cannot release any of the exclusive locks until the transaction commits or aborts. This ensures that any data is written by an uncommitted transaction are locked in exclusive mode until the transaction commits and preventing other transaction from reading that data.
+Benefits:
+\begin{itemize}
+    \item [1.] Simple to implement (compared to conservative 2PL) since this protocol doesn't have to know objects a priori or when to release locks.
+    \item [2.] Since strict 2PL always results in cascadeless schedules, then cascading abort won't occur. This protocol simplifies transaction aborts (compared to conservative 2PL).
+    \item [3.] Another implication of only producing cascadeless schedules is that the recovery (when transaction aborts) will be easy.
+    \item [4.] Strict 2PL protocol solves dirty read problem since it ensures that any data written by an uncommitted transaction are locked (in exclusive mode) until the transaction commits. Thus, other transactions can't read that dirty data.
+\end{itemize}
+Disadvantages:
+\begin{itemize}
+    \item [1.] Less concurrency is involved in strict 2PL compared to plain 2PL. This is due to the number of possible schedules in strict 2PL that is always less than that of plain 2PL. In other words, the schedules produced by strict 2PL protocol are the subset of that of plain 2PL protocol. So, the concurrency is reduced.
+    \item [2.] Deadlock can happen when using this protocol (compared to conservative 2PL in which deadlock is not a possibility).
+\end{itemize}
+References:
+\begin{itemize}
+    \item [1.] https://www.coursehero.com/file/p3ip8uo/Explain-strict-two-phase-locking-Explain-its-advantage-and-disadvantage-Strict/
+    \item [2.] http://www.cs.cornell.edu/courses/cs432/2003fa/slides/ConcurrencyControl.pdf
+\end{itemize}
+
+\section*{No. 20}
+\boldsymbol{Question:} Outline the no-steal and force buffer management policies.
+\newline\newline
+\boldsymbol{Answer:}
+\begin{itemize}
+    \item [1.] No-steal buffer management policy\newline\newline
+    This is related to how buffer manager deals with a dirty page. A dirty page is a page that is being modified by an uncommitted transaction. It stays dirty until the transaction is completed or rolled back. When trying to write a page out to disk, buffer manager can either take into consideration dirty pages or ignore the fact that there may be some dirty pages in the buffer (i.e. doesn't differ between clean and dirty pages). The former case is called no-steal buffer management policy where dirty pages in the buffer won't be written out to disk, i.e. retained in the buffer, until the transaction that modifies the page is done (either committed or rolled back). Thus, this policy doesn't allow dirty pages on buffer pool to overwrite clean/committed data on disk. \newline\newline
+    The advantage is that no UNDO operation is needed as no pages on disk needs to be touched when rolling back. The tradeoff for that advantage would be a need of big buffer pool and the necessity of page locking (to differ between clean and dirty pages).
+    \item [2.] Force buffer management policy\newline\newline
+    This is related to the mechanism of writing the pages from buffer to disk, especially when to write the modified pages to disk. Using force buffer management policy, we make sure that that every update is stored on disk before it commits. In other words, for a two phases commit, at phase 1 of the transaction commit, buffer manager will locate all pages modified by that transaction and write those pages out to disk. \newline\newline
+    The advantage is that no REDO operation is needed when we restart (provides durability). The tradeoff for that advantage would be a significantly more I/O operations for frequently modified pages and the response time is slow because for a transaction to complete, it should wait until the last page write executes succesfully.
+\end{itemize}
+\newline\newline
+Reference:
+\begin{itemize}
+    \item [1.] http://www.cs.put.poznan.pl/mwojciechowski/slides/bdwykl/bufor.pdf
+    \item [2.] http://db.cs.berkeley.edu/jmh/cs186/f02/lecs/lec25\_6up.pdf
+\end{itemize}
+\end{document}
