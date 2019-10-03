@@ -4,6 +4,7 @@
 # 3. Second function is classifier, basically takes threshold and output binary class, compute error & FP rate
 
 import numpy as np
+import statsmodels.api as sm
 
 def load_csv_to_ndarray(filepath):
     with open(filepath, 'r') as f:
@@ -14,8 +15,7 @@ def load_csv_to_ndarray(filepath):
     return header.strip('\n').split(','), data[1:len(data)]
 
 def create_feature_matrix(data):
-    columns = len(data[0])
-    return data[:, 1:columns]
+    return data[:, 1:len(data[0])]
 
 def create_label_vector(data):
     return data[:, 0]
@@ -45,27 +45,23 @@ def train_params(feature_matrix, label_vector):
     return np.dot(np.dot(inverse_matmul, feature_matrix_transposed), label_vector)
 
 def predict_values(model_params, feature_matrix):
-    # print(np.dot(feature_matrix[0].T, model_params))
-    # print(np.dot(feature_matrix, model_params)[0:20])
     return np.dot(feature_matrix, model_params)
 
-def calculate_squared_loss(prediction_values, label_vector, mean=True):
+def calculate_squared_loss(prediction_values, label_vector, average=True):
     total_squared_loss = np.sum((prediction_values - label_vector) ** 2)
 
-    if mean:
+    if average:
         return total_squared_loss / len(label_vector)
 
     return total_squared_loss
 
 def predict_label(predict_values, threshold):
-    return [1 if value > threshold else 0 for value in predict_values]
+    return [1.0 if value > threshold else 0.0 for value in predict_values]
 
 def calculate_error_rate(predictions, label_vector):
     verdicts = [1 if y_pred == y else 0 for y_pred, y in zip(predictions, label_vector)]
-    print(label_vector[0:10])
-    print(verdicts[0:10])
 
-    return 1 - (np.sum(verdicts) / len(label_vector))
+    return np.sum(verdicts) / len(label_vector)
 
 def calculate_false_positive_rate(predictions, label_vector):
     total_false_positives = np.sum([1 if y_pred == 1.0 and y == 0.0 else 0 for y_pred, y in zip(predictions, label_vector)])
@@ -77,46 +73,15 @@ if __name__=='__main__':
     columns, train_data = load_csv_to_ndarray('data/compas-train.csv')
 
     x_train = create_feature_matrix(train_data)
-    x_train = add_intercept(x_train)
-    # print(x_train[0:10])
-
+    # x_train = sm.add_constant(x_train)
     y_train = create_label_vector(train_data)
-    # print(y_train)
 
-    ols_params = train_params(x_train, y_train)
-    # intercept = calculate_intercept(ols_params, x_train, y_train)
-    # ols_params = np.insert(ols_params, 0, intercept)
-    # print(ols_params)
+    model = sm.OLS(y_train, x_train)
+    results = model.fit()
 
-    # x_train = add_intercept(x_train)
-    train_prediction_values = predict_values(ols_params, x_train)
-    print(train_prediction_values[0:10])
+    print(results.summary())
 
-    # train_mean_squared_loss = calculate_squared_loss(train_prediction_values, y_train)
-    # print('Train mean squared loss: ' + str(train_mean_squared_loss))
-    #
-    train_predictions = predict_label(train_prediction_values, 0.5)
-    print(train_predictions[0:10])
-    #
-    train_error_rate = calculate_error_rate(train_predictions, y_train)
-    print('Train error rate: ' + str(train_error_rate))
+    print(results.mse_total)
 
-    columns, test_data = load_csv_to_ndarray('data/compas-test.csv')
-
-    x_test = create_feature_matrix(test_data)
-    x_test = add_intercept(x_test)
-
-    y_test = create_label_vector(test_data)
-
-    prediction_values = predict_values(ols_params, x_test)
-
-    mean_squared_loss = calculate_squared_loss(prediction_values, y_test)
-    print('Test meand squared loss: ' + str(mean_squared_loss))
-
-    predictions = predict_label(prediction_values, 0.5)
-
-    test_error_rate = calculate_error_rate(predictions, y_test)
-    print('Test error rate: ' + str(test_error_rate))
-
-    test_false_positive_rate = calculate_false_positive_rate(predictions, y_test)
-    print('Test false positive rate: ' + str(test_false_positive_rate))
+    ypred = results.predict(x_train[0:10])
+    print(ypred)
