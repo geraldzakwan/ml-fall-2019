@@ -1,11 +1,14 @@
 import numpy as np
 
 def load_csv_to_ndarray(filepath):
+    with open(filepath, 'r') as f:
+        header = f.readline()
+
     # Read using numpy lib
     data = np.genfromtxt(filepath, dtype=float, delimiter=',')
 
     # Return all rows except the first one
-    return data[1:len(data)]
+    return header.strip('\n').split(','), data[1:len(data)]
 
 def create_label_vector(data):
     # Extract first column as label vector -> shape (4920,)
@@ -35,11 +38,15 @@ def train_params(feature_matrix, label_vector):
     feature_matrix_matmul = np.dot(feature_matrix_transposed, feature_matrix)
 
     try:
-        # Compute inverse(X'X), in this case, X'X matrix is invertible
+        # Compute inverse(X'X), assuming X'X matrix is invertible (there is unique solution)
         inverse_matmul = np.linalg.inv(feature_matrix_matmul)
-    except numpy.linalg.LinAlgError:
-        print('MATRIX NOT INVERTIBLE')
-        raise Exception
+    except np.linalg.LinAlgError:
+        print('Matrix is not invertible, use np.linalg.lstsq instead')
+        # Basically, lstsq(M_1, M_2) will return a solution, let say M_sol
+        # M_sol has the least squares/l2 norms amongst other solutions (there can also be no solution)
+        # M_sol fulfills the equation: np.dot(M_1, M_sol) = M_2
+        # In our case, M_1 would be X'X, M_2 would be X'y and M_sol would be the b we seek
+        return np.linalg.lstsq(np.dot(feature_matrix_transposed, feature_matrix), np.dot(feature_matrix_transposed, label_vector), rcond=None)[0]
 
     # Compute inverse(X'X)X'y
     return np.dot(np.dot(inverse_matmul, feature_matrix_transposed), label_vector)
@@ -78,8 +85,13 @@ def calculate_false_positive_rate(predictions, label_vector):
     # Divide false positives count by total negative cases
     return false_positives / total_negatives
 
+def separate_data(data, binary_column_index):
+    return data[data[:,binary_column_index] == 0], data[data[:,binary_column_index] == 1]
+
 if __name__=='__main__':
-    train_data = load_csv_to_ndarray('data/compas-train.csv')
+    print('-------------------------------------------------')
+    print('TRAINING USING FULL TRAIN DATA')
+    columns, train_data = load_csv_to_ndarray('data/compas-train.csv')
 
     x_train = create_feature_matrix(train_data)
     x_train = add_intercept(x_train)
@@ -87,24 +99,7 @@ if __name__=='__main__':
 
     ols_params = train_params(x_train, y_train)
 
-    # train_prediction_values = predict_values(ols_params, x_train)
-    #
-    # train_mean_squared_loss = calculate_squared_loss(train_prediction_values, y_train)
-    # print('-------------------------------------------------')
-    # print('Train mean squared loss: ' + str(train_mean_squared_loss))
-    # print()
-    #
-    # train_predictions = predict_label(train_prediction_values, 0.5)
-    #
-    # train_error_rate = calculate_error_rate(train_predictions, y_train)
-    # print('Train error rate: ' + str(train_error_rate))
-    # print()
-    #
-    # train_false_positive_rate = calculate_false_positive_rate(train_predictions, y_train)
-    # print('Train false positive rate: ' + str(train_false_positive_rate))
-    # print('-------------------------------------------------')
-
-    test_data = load_csv_to_ndarray('data/compas-test.csv')
+    columns, test_data = load_csv_to_ndarray('data/compas-test.csv')
 
     x_test = create_feature_matrix(test_data)
     x_test = add_intercept(x_test)
@@ -126,3 +121,63 @@ if __name__=='__main__':
     test_false_positive_rate = calculate_false_positive_rate(predictions, y_test)
     print('Test false positive rate: ' + str(test_false_positive_rate))
     print('-------------------------------------------------')
+
+    # Divide into two subpopulations based on sex
+    partitioned_test_data = separate_data(test_data, columns.index('sex'))
+    for i in range(0, 2):
+        sub_x_test = create_feature_matrix(partitioned_test_data[i])
+        sub_x_test = add_intercept(sub_x_test)
+        sub_y_test = create_label_vector(partitioned_test_data[i])
+
+        sub_prediction_values = predict_values(ols_params, sub_x_test)
+
+        sub_mean_squared_loss = calculate_squared_loss(sub_prediction_values, sub_y_test)
+        print('-------------------------------------------------')
+        print('Test subpopulation ' + str(i) + ' mean squared loss: ' + str(sub_mean_squared_loss))
+        print()
+
+        sub_predictions = predict_label(sub_prediction_values, 0.5)
+
+        sub_test_error_rate = calculate_error_rate(sub_predictions, sub_y_test)
+        print('Test subpopulation ' + str(i) + ' error rate: ' + str(sub_test_error_rate))
+        print()
+
+        sub_test_false_positive_rate = calculate_false_positive_rate(sub_predictions, sub_y_test)
+        print('Test subpopulation ' + str(i) + ' false positive rate: ' + str(sub_test_false_positive_rate))
+        print('-------------------------------------------------')
+
+    print()
+    print()
+    print('-------------------------------------------------')
+    print('TRAINING USING TWO DIFFERENT SUBPOPULATIONS')
+    print('-------------------------------------------------')
+
+    # Divide into two subpopulations based on sex
+    partitioned_train_data = separate_data(train_data, columns.index('sex'))
+    for i in range(0, 2):
+        sub_x_train = create_feature_matrix(partitioned_train_data[i])
+        sub_x_train = add_intercept(sub_x_train)
+        sub_y_train = create_label_vector(partitioned_train_data[i])
+
+        sub_ols_params = train_params(sub_x_train, sub_y_train)
+
+        sub_x_test = create_feature_matrix(partitioned_test_data[i])
+        sub_x_test = add_intercept(sub_x_test)
+        sub_y_test = create_label_vector(partitioned_test_data[i])
+
+        sub_prediction_values = predict_values(sub_ols_params, sub_x_test)
+
+        sub_mean_squared_loss = calculate_squared_loss(sub_prediction_values, sub_y_test)
+        print('-------------------------------------------------')
+        print('Test subpopulation ' + str(i) + ' mean squared loss: ' + str(sub_mean_squared_loss))
+        print()
+
+        sub_predictions = predict_label(sub_prediction_values, 0.5)
+
+        sub_test_error_rate = calculate_error_rate(sub_predictions, sub_y_test)
+        print('Test subpopulation ' + str(i) + ' error rate: ' + str(sub_test_error_rate))
+        print()
+
+        sub_test_false_positive_rate = calculate_false_positive_rate(sub_predictions, sub_y_test)
+        print('Test subpopulation ' + str(i) + ' false positive rate: ' + str(sub_test_false_positive_rate))
+        print('-------------------------------------------------')
