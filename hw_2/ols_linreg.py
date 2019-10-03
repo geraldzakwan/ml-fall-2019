@@ -72,6 +72,8 @@ def predict_label(predict_values, threshold):
 def calculate_error_rate(predictions, label_vector):
     verdicts = [1 if y_pred == y else 0 for y_pred, y in zip(predictions, label_vector)]
 
+    print(str(len(label_vector) - np.sum(verdicts)) + '/' + str(len(label_vector)))
+
     # Return fraction of wrongly classified instances
     return 1 - (np.sum(verdicts) / len(label_vector))
 
@@ -81,6 +83,8 @@ def calculate_false_positive_rate(predictions, label_vector):
 
     # Count how many 0 labels (negative cases)
     total_negatives = np.sum([1 if y == 0.0 else 0 for y in label_vector])
+
+    print(str(false_positives) + '/' + str(total_negatives))
 
     # Divide false positives count by total negative cases
     return false_positives / total_negatives
@@ -107,9 +111,9 @@ if __name__=='__main__':
 
     prediction_values = predict_values(ols_params, x_test)
 
-    mean_squared_loss = calculate_squared_loss(prediction_values, y_test)
+    squared_loss_risk = calculate_squared_loss(prediction_values, y_test)
     print('-------------------------------------------------')
-    print('Test mean squared loss: ' + str(mean_squared_loss))
+    print('Test squared loss risk: ' + str(squared_loss_risk))
     print()
 
     predictions = predict_label(prediction_values, 0.5)
@@ -131,9 +135,9 @@ if __name__=='__main__':
 
         sub_prediction_values = predict_values(ols_params, sub_x_test)
 
-        sub_mean_squared_loss = calculate_squared_loss(sub_prediction_values, sub_y_test)
+        sub_squared_loss_risk = calculate_squared_loss(sub_prediction_values, sub_y_test)
         print('-------------------------------------------------')
-        print('Test subpopulation ' + str(i) + ' mean squared loss: ' + str(sub_mean_squared_loss))
+        print('Test subpopulation ' + str(i) + ' squared loss risk: ' + str(sub_squared_loss_risk))
         print()
 
         sub_predictions = predict_label(sub_prediction_values, 0.5)
@@ -167,9 +171,9 @@ if __name__=='__main__':
 
         sub_prediction_values = predict_values(sub_ols_params, sub_x_test)
 
-        sub_mean_squared_loss = calculate_squared_loss(sub_prediction_values, sub_y_test)
+        sub_squared_loss_risk = calculate_squared_loss(sub_prediction_values, sub_y_test)
         print('-------------------------------------------------')
-        print('Test subpopulation ' + str(i) + ' mean squared loss: ' + str(sub_mean_squared_loss))
+        print('Test subpopulation ' + str(i) + ' squared loss risk: ' + str(sub_squared_loss_risk))
         print()
 
         sub_predictions = predict_label(sub_prediction_values, 0.5)

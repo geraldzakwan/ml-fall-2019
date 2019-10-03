@@ -73,7 +73,7 @@ if __name__=='__main__':
     columns, train_data = load_csv_to_ndarray('data/compas-train.csv')
 
     x_train = create_feature_matrix(train_data)
-    # x_train = sm.add_constant(x_train)
+    x_train = sm.add_constant(x_train)
     y_train = create_label_vector(train_data)
 
     model = sm.OLS(y_train, x_train)
@@ -81,7 +81,11 @@ if __name__=='__main__':
 
     print(results.summary())
 
+    print('MSE_TOTAL:')
     print(results.mse_total)
+
+    print('MSE_RESID:')
+    print(results.mse_resid)
 
     ypred = results.predict(x_train[0:10])
     print(ypred)
