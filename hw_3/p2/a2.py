@@ -1,14 +1,25 @@
-from scipy.io import loadmat
-news = loadmat('news.mat')
+from helper import load_news_data, create_dictionary
 
-train_data = news['data']
-train_labels = news['labels']
+if __name__ == '__main__':
+    train_data, train_labels, test_data, test_labels = load_news_data('news.mat')
 
-test_data = news['testdata']
-test_labels = news['testlabels']
+    # Convert train and test data to np array
+    train_data = train_data.todense()
+    # print(train_data.shape)
+    # (11269, 61188)
 
-print(type(train_data))
-print(type(train_labels))
+    # So, basically 61188 is the vocab size
+    # It is a one hot encoding
+    # 11269 is the total sentence
 
-print(type(test_data))
-print(type(test_labels))
+    # Convert test data to np array
+    test_data = test_data.todense()
+
+    print(test_data.shape)
+    # (7505, 61188)
+
+    word_dict = create_dictionary('news.vocab')
+    # print(len(word_dict))
+    # 61188
+
+    
