@@ -1,149 +1,154 @@
-import sys
-import time
 import numpy as np
-import pickle
+
 from collections import defaultdict
 from scipy.io import loadmat
 
-def load_news_data(filepath):
+def load_news_data(filepath='news.mat'):
     news = loadmat(filepath)
 
-    train_data = news['data']
-    train_labels = news['labels']
+    # From scipy csc matrix to 2D array
+    train_data = news['data'].toarray()
+    # From 2D array to 1D array
+    train_labels = news['labels'].flatten()
 
-    test_data = news['testdata']
-    test_labels = news['testlabels']
+    test_data = news['testdata'].toarray()
+    test_labels = news['testlabels'].flatten()
 
     return train_data, train_labels, test_data, test_labels
 
-def create_dictionary(filepath):
+def create_dictionary(filepath='news.vocab'):
     with open(filepath, 'r') as f:
         list_of_words = f.readlines()
 
     return list_of_words
 
-# This is going to be the pi_y
+# This is going to be the pi_y, i.e. label probability
 def calculate_label_count_and_probability(labels):
-    label_count = defaultdict(int)
-
+    # Count label occurrence, store in 1D array
+    # Set array size equals to the number of unique labels
+    label_count = np.zeros(len(np.unique(labels)))
     for label in labels:
-        label_count[label[0]] = label_count[label[0]] + 1
+        # The important thing is to set index to (label - 1)
+        # as index starts from zero but label starts from 1
+        label_count[label - 1] = label_count[label - 1] + 1
 
-    label_probability = {}
-
+    # Calculate label probability, store in 1D array
+    label_prob = np.zeros(len(label_count))
     for label in labels:
-        label_probability[label[0]] = label_count[label[0]] / len(labels)
+        # Again, index is label - 1
+        label_prob[label - 1] = label_count[label - 1] / len(labels)
 
-    return label_count, label_probability
+    return label_count, label_prob
 
-def check_sum_probability(collection):
-    sum_of_probs = 0
-
-    if isinstance(collection, dict):
-        for label in label_probability:
-            sum_of_probs = sum_of_probs + label_probability[label]
-    else:
-        sum_of_probs = np.sum(collection)
-
-    print(sum_of_probs)
-    return abs(sum_of_probs - 1.0) < 0.001
-
-# This is going to be miu_y_j
-# Return array of shape(20, 61188)
-# TO DO: Optimize this, now takes around 30 - 35 seconds
-def calculate_word_given_label_probability(train_data, train_labels, word_list):
-    start = time.time()
-
-    label_count, label_probability = calculate_label_count_and_probability(train_labels)
-
-    # print(word_sum.shape)
-    word_sum = np.zeros((len(label_count), len(word_list)))
-
-    # Get word_sum
-    # Iterate over 11269 data
-    for i in range(0, len(train_data)):
-        word_vector = train_data[i]
-        # IMPORTANT, train_labels is a 2D ndarray, take index 0
-        label = train_labels[i][0]
-
-        if i % 100 == 0:
-            print(i)
-
-        # Iterate over word vector of 61188 elements
-        for j in range(0, len(word_vector)):
-            # IMPORTANT, reduce label by 1, e.g. label 1 for index 0
-            word_sum[label-1][j] = word_sum[label-1][j] + word_vector[j]
-
-    # Finally, divide the word_sum by the total occurence of
-    # its corresponding label
+# This is going to be the miu_y_j
+# The idea is to calculate separately for each value of y, i.e.
+# getting train_data only for a particular value of y
+# Then, sum over the word index and divide by the number of data
+def calculate_word_given_label_prob(train_data, label_count, word_list, laplace_smoothing=True):
+    # The return array of shape (20, 61188)
+    # i.e. (number of labels, word vocab size)
     word_prob = np.zeros((len(label_count), len(word_list)))
 
-    for i in range(0, len(word_prob)):
-        if i % 100 == 0:
-            print(i)
+    # Iterate over label
+    for i in range(0, len(label_count)):
+        # I observe that train_labels is sorted ascendingly (1 to 20)
+        # So, we can just find two indexes where a particular label starts and ends
+        # This is done using the following 3 lines
+        idx, = np.where(train_labels == i + 1) # Again, label is index plus one
+        first_idx = idx[0]
+        last_idx = idx[-1]
 
-        for j in range(0, len(word_prob[i])):
-            # IMPORTANT, ADD index by 1, e.g. index 0 for label 1
-            word_prob[i][j] = word_sum[i][j] / label_count[i + 1]
+        # Get the corresponding train_data for that label
+        corr_train_data = train_data[first_idx:last_idx]
 
-    print('Time elapsed: ')
-    print(time.time() - start)
+        # Sum over axis=0, i.e. sum the word occurrence
+        word_sum = np.sum(corr_train_data, axis=0)
+
+        if laplace_smoothing:
+            # Laplace smoothing, add each sum by 1
+            word_sum = np.add(word_sum, 1)
+
+        # Finally, calculate the word prob for this particular label
+        if laplace_smoothing:
+            # Divide by label_count + 2 (Laplace smoothing)
+            word_prob_for_label = np.divide(word_sum, label_count[i] + 2)
+        else:
+            word_prob_for_label = np.divide(word_sum, label_count[i])
+
+        # Assign result to the return array
+        word_prob[i] = word_prob_for_label
 
     return word_prob
 
-# Check if for all y, miu_y_j sums up to 1
-def check_word_probability(word_prob):
-    for prob_list in word_prob:
-        if not check_sum_probability(prob_list):
-            return False
+# Return True if array of probabilities sums up (closely) to 1
+def check_sum_probability(array, epsilon=0.000001):
+    return abs(np.sum(array) - 1.0) < epsilon
 
-    return True
+# Input: Feature vectors, 2D array of shape (n, d),
+# where n is the number of data supplied and d is the dimension: 61188
+# Return 1D array of predicted labels (size n)
+def predict(feature_vectors, label_prob, word_prob):
+    # Create the term 1 - x_j
+    # Shape: (n, 61188)
+    one_minus_feature_vectors = np.add(np.multiply(feature_vectors, -1), 1)
 
-    # This is going to be the P(X|Y)
-    def calculate_feature_vector_probability(word_prob):
-        likelihood_arr = np.zeros()
+    # Create the term 1 - miu_y_j
+    # Shape: (20, 61188)
+    one_minus_word_prob = np.add(np.multiply(word_prob, -1), 1)
 
+    # Log values of all the components
+    pi_log_prob = np.log(label_prob) # Shape: (20,)
+    log_word_prob = np.log(word_prob) # Shape: (20, 61188)
+    log_one_minus_word_prob = np.log(one_minus_word_prob) # Shape: (20, 61188)
+
+    # Dot product of x_j and ln(miu_y_j)
+    # Shape: (n, 20)
+    dot_product_one = np.dot(feature_vectors, log_word_prob.transpose())
+
+    # Dot product of (1 - x_j) and ln(1 - miu_y_j)
+    # Shape: (n, 20)
+    dot_product_two = np.dot(one_minus_feature_vectors, log_one_minus_word_prob.transpose())
+
+    # pi_log_prob will be broadcasted automatically,
+    # i.e. from shape (20,) to (n, 20)
+    # Shape: (n, 20)
+    final_log_probs = dot_product_one + dot_product_two + pi_log_prob
+
+    # Finally, return the label that has maximum logprob in each row
+    # This is done by using argmax on axis=1
+    # Add the argmax index result by 1 to obtain the correct label
+    return np.add(np.argmax(final_log_probs, axis=1), 1) # Shape: (n,)
+
+def compute_error_rate(test_data, test_labels, label_prob, word_prob):
+    pred_result = predict(test_data, label_prob, word_prob)
+
+    # We compute the error rate here, so wrong prediction will yield 1
+    # and correct prediction will yield 0
+    pred_verdict = [1 if pred_result[i] != test_labels[i] else 0 for i in range(0, len(test_data))]
+
+    # Sum the wrong predictions and divide it by total test data
+    return np.sum(pred_verdict) / len(pred_verdict)
 
 if __name__ == '__main__':
-    # with open('word_prob.pickle', 'rb') as handle:
-    #     word_prob = pickle.load(handle)
-    #
-    # print(word_prob[0])
-    # print(word_prob[1])
-    # print(word_prob[2])
+    # Get the data
+    train_data, train_labels, test_data, test_labels = load_news_data()
 
-    # print(check_word_probability(word_prob))
+    # Create word vocab list
+    word_list = create_dictionary()
 
-    train_data, train_labels, test_data, test_labels = load_news_data('news.mat')
+    # Calculate pi_y, i.e. the label probability
+    label_count, label_prob = calculate_label_count_and_probability(train_labels)
 
-    print(len(test_labels))
+    # Sanity check (probabilities sum up to 1)
+    assert check_sum_probability(label_prob)
 
-    sys.exit()
+    # Calculate miu_y_j, i.e. the word probability
+    word_prob = calculate_word_given_label_prob(train_data, label_count, word_list)
 
-    # Convert train and test data to np array
-    train_data = train_data.todense()
-    # print(train_data.shape)
-    # (11269, 61188)
+    # Calculate train_error_rate
+    train_error_rate = compute_error_rate(train_data, train_labels, label_prob, word_prob)
+    print('Train error rate: ' + str(train_error_rate))
 
-    word_list = create_dictionary('news.vocab')
-    # print(len(word_dict))
-    # 61188
-
-    word_prob = calculate_word_given_label_probability(train_data, train_labels, word_list)
-    print(word_prob.shape)
-
-    with open('word_prob.pickle', 'wb') as handle:
-        pickle.dump(word_prob, handle)
-
-    label_count, label_probability = calculate_label_and_count_probability(train_labels)
-    print(check_sum_probability(label_probability))
-
-    # So, basically 61188 is the vocab size
-    # It is a one hot encoding
-    # 11269 is the total sentence
-
-    # Convert test data to np array
-    test_data = test_data.todense()
-
-    print(test_data.shape)
-    # (7505, 61188)
+    # Calculate test_error_rate
+    test_error_rate = compute_error_rate(test_data, test_labels, label_prob, word_prob)
+    print('Test error rate: ' + str(test_error_rate))
