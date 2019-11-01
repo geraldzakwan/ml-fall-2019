@@ -99,24 +99,26 @@ def check_word_probability(word_prob):
 
     return True
 
-# This is going to be the P(X|Y)
-def calculate_feature_vector_probability(word_prob):
-    likelihood_arr = np.zeros()
+    # This is going to be the P(X|Y)
+    def calculate_feature_vector_probability(word_prob):
+        likelihood_arr = np.zeros()
 
 
 if __name__ == '__main__':
-    with open('word_prob.pickle', 'rb') as handle:
-        word_prob = pickle.load(handle)
+    # with open('word_prob.pickle', 'rb') as handle:
+    #     word_prob = pickle.load(handle)
+    #
+    # print(word_prob[0])
+    # print(word_prob[1])
+    # print(word_prob[2])
 
-    print(word_prob[0])
-    print(word_prob[1])
-    print(word_prob[2])
-
-    sys.exit()
-
-    print(check_word_probability(word_prob))
+    # print(check_word_probability(word_prob))
 
     train_data, train_labels, test_data, test_labels = load_news_data('news.mat')
+
+    print(len(test_labels))
+
+    sys.exit()
 
     # Convert train and test data to np array
     train_data = train_data.todense()
