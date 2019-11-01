@@ -4,7 +4,7 @@ import numpy as np
 from collections import defaultdict
 from scipy.io import loadmat
 
-def load_news_data(filepath='news.mat'):
+def load_news_data(filepath):
     news = loadmat(filepath)
 
     # From scipy csc matrix to 2D array
@@ -45,22 +45,31 @@ def calculate_label_count_and_probability(labels):
 # The idea is to calculate separately for each value of y, i.e.
 # getting train_data only for a particular value of y
 # Then, sum over the word index and divide by the number of data
-def calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, laplace_smoothing=True):
+def calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, is_sorted, laplace_smoothing=True):
     # The return array of shape (20, 61188)
     # i.e. (number of labels, word vocab size)
     word_prob = np.zeros((len(label_count), len(word_list)))
 
     # Iterate over label
     for i in range(0, len(label_count)):
-        # I observe that train_labels is sorted ascendingly (1 to 20)
-        # So, we can just find two indexes where a particular label starts and ends
-        # This is done using the following 3 lines
-        idx, = np.where(train_labels == i + 1) # Again, label is index plus one
-        first_idx = idx[0]
-        last_idx = idx[-1]
+        # For each label, find all indexes in train_labels that correspond
+        indexes, = np.where(train_labels == i + 1) # Again, label is index plus one
 
         # Get the corresponding train_data for that label
-        corr_train_data = train_data[first_idx:last_idx]
+        if is_sorted:
+            # If the train_labels is sorted, we can just find two indexes
+            # where a particular label starts and ends
+            # Then, use that two indexes to slice the train data
+            # This is the case for 'news.mat'
+            first_idx = indexes[0]
+            last_idx = indexes[-1]
+
+            corr_train_data = train_data[first_idx:last_idx]
+        else:
+            # If the train_labels is not sorted, we need to use np.take
+            # to take all train_data that correspond to the label
+            # This is the case for 'news_binary.mat' and this is rather slow
+            corr_train_data = np.take(train_data, indexes, axis=0)
 
         # Sum over axis=0, i.e. sum the word occurrence
         word_sum = np.sum(corr_train_data, axis=0)
@@ -80,42 +89,6 @@ def calculate_word_given_label_prob(train_data, train_labels, label_count, word_
         word_prob[i] = word_prob_for_label
 
     return word_prob
-
-# # This is going to be the miu_y_j
-# # The idea is to calculate separately for each value of y, i.e.
-# # getting train_data only for a particular value of y
-# # Then, sum over the word index and divide by the number of data
-# def calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, laplace_smoothing=True):
-#     # The return array of shape (20, 61188)
-#     # i.e. (number of labels, word vocab size)
-#     word_prob = np.zeros((len(label_count), len(word_list)))
-#
-#     # Iterate over label
-#     for i in range(0, len(label_count)):
-#         # For each label, find all indexes in train_labels that correspond
-#         indexes, = np.where(train_labels == i + 1) # Again, label is index plus one
-#
-#         # Get the corresponding train_data for that label
-#         corr_train_data = np.take(train_data, indexes, axis=0)
-#
-#         # Sum over axis=0, i.e. sum the word occurrence
-#         word_sum = np.sum(corr_train_data, axis=0)
-#
-#         if laplace_smoothing:
-#             # Laplace smoothing, add each sum by 1
-#             word_sum = np.add(word_sum, 1)
-#
-#         # Finally, calculate the word prob for this particular label
-#         if laplace_smoothing:
-#             # Divide by label_count + 2 (Laplace smoothing)
-#             word_prob_for_label = np.divide(word_sum, label_count[i] + 2)
-#         else:
-#             word_prob_for_label = np.divide(word_sum, label_count[i])
-#
-#         # Assign result to the return array
-#         word_prob[i] = word_prob_for_label
-#
-#     return word_prob
 
 # Return True if array of probabilities sums up (closely) to 1
 def check_sum_probability(array, epsilon=0.000001):
@@ -174,7 +147,7 @@ def experiment_3a():
     print()
 
     # Get the data
-    train_data, train_labels, test_data, test_labels = load_news_data()
+    train_data, train_labels, test_data, test_labels = load_news_data('news.mat')
 
     # Create word vocab list
     word_list = create_dictionary()
@@ -186,7 +159,55 @@ def experiment_3a():
     assert check_sum_probability(label_prob)
 
     # Calculate miu_y_j, i.e. the word probability
-    word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list)
+    word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, True)
+    print('Done calculating word prob')
+    print('Elapsed time: ' + str(time.time() - start))
+    print()
+
+    # Calculate train_error_rate
+    train_error_rate = compute_error_rate(train_data, train_labels, label_prob, word_prob)
+    print('Train error rate: ' + str(train_error_rate))
+    print('Done calculating train error rate')
+    print('Elapsed time: ' + str(time.time() - start))
+    print()
+
+    # Calculate test_error_rate
+    test_error_rate = compute_error_rate(test_data, test_labels, label_prob, word_prob)
+    print('Test error rate: ' + str(test_error_rate))
+    print('Done calculating test error rate')
+    print('Elapsed time: ' + str(time.time() - start))
+    print()
+
+    print('----------------------------------------')
+    print()
+
+# Experiment for binary labels
+def experiment_3b():
+    start = time.time()
+
+    print('Experiment 3b: ')
+    print()
+
+    # Get the data
+    train_data, train_labels, test_data, test_labels = load_news_data('news_binary.mat')
+
+    # Modify label from (-1, 1) to (1, 2) so it's easier to process
+    # as it follows the previous convention that I use: label = index + 1
+    train_labels = np.where(train_labels == -1, 1, 2)
+    test_labels = np.where(test_labels == -1, 1, 2)
+
+    # Create word vocab list
+    word_list = create_dictionary()
+
+    # Calculate pi_y, i.e. the label probability
+    label_count, label_prob = calculate_label_count_and_probability(train_labels)
+
+    # Sanity check (probabilities sum up to 1)
+    assert check_sum_probability(label_prob)
+
+    # Calculate miu_y_j, i.e. the word probability
+    # The difference from experiment 3a is than the train_labels is not sorted
+    word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, False)
     print('Done calculating word prob')
     print('Elapsed time: ' + str(time.time() - start))
     print()
@@ -210,3 +231,5 @@ def experiment_3a():
 
 if __name__ == '__main__':
     experiment_3a()
+
+    experiment_3b()
