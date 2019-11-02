@@ -200,7 +200,7 @@ def get_top_and_bottom_words(weights, word_list, k=20):
     return zipped_top, zipped_bottom
 
 # Experiment for 20 labels
-def experiment_3a():
+def run_experiment_3a():
     start = time.time()
 
     print('Experiment 3a: ')
@@ -221,7 +221,7 @@ def experiment_3a():
     # Calculate miu_y_j, i.e. the word probability
     word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, True)
     print('Done calculating word prob')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     # Prediction result on train data
@@ -231,7 +231,7 @@ def experiment_3a():
     train_error_rate = compute_error_rate(train_pred_result, train_labels)
     print('Train error rate: ' + str(train_error_rate))
     print('Done calculating train error rate')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     # Prediction result on test data
@@ -241,14 +241,14 @@ def experiment_3a():
     test_error_rate = compute_error_rate(test_pred_result, test_labels)
     print('Test error rate: ' + str(test_error_rate))
     print('Done calculating test error rate')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     print('----------------------------------------')
     print()
 
 # Experiment for binary labels
-def experiment_3b():
+def run_experiment_3b():
     start = time.time()
 
     print('Experiment 3b: ')
@@ -275,7 +275,7 @@ def experiment_3b():
     # The difference from experiment 3a is than the train_labels is not sorted
     word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, False)
     print('Done calculating word prob')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     # Prediction result on train data
@@ -285,7 +285,7 @@ def experiment_3b():
     train_error_rate = compute_error_rate(train_pred_result, train_labels)
     print('Train error rate: ' + str(train_error_rate))
     print('Done calculating train error rate')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     # Prediction result on test data
@@ -295,14 +295,14 @@ def experiment_3b():
     test_error_rate = compute_error_rate(test_pred_result, test_labels)
     print('Test error rate: ' + str(test_error_rate))
     print('Done calculating test error rate')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     print('----------------------------------------')
     print()
 
 # Experiment for binary labels with affine function
-def experiment_3c():
+def run_experiment_3c():
     start = time.time()
 
     print('Experiment 3c: ')
@@ -329,52 +329,57 @@ def experiment_3c():
     # The difference from experiment 3a is than the train_labels is not sorted
     word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, False)
     print('Done calculating word prob')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     bias = calculate_bias(label_prob, word_prob)
     weights = calculate_weights(word_prob)
     print('Done calculating bias and weights')
-    print('Elapsed time: ' + str(time.time() - start))
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
-    # # Prediction result on train data
-    # train_pred_result = predict_affine(train_data, bias, weights)
-    #
-    # # Calculate train_error_rate
-    # train_error_rate = compute_error_rate(train_pred_result, train_labels)
-    # print('Train error rate: ' + str(train_error_rate))
-    # print('Done calculating train error rate')
-    # print('Elapsed time: ' + str(time.time() - start))
-    # print()
-    #
-    # # Prediction result on test data
-    # test_pred_result = predict_affine(test_data, bias, weights)
-    #
-    # # Calculate test_error_rate
-    # test_error_rate = compute_error_rate(test_pred_result, test_labels)
-    # print('Test error rate: ' + str(test_error_rate))
-    # print('Done calculating test error rate')
-    # print('Elapsed time: ' + str(time.time() - start))
-    # print()
+    # Prediction result on train data
+    train_pred_result = predict_affine(train_data, bias, weights)
 
+    # Calculate train_error_rate
+    train_error_rate = compute_error_rate(train_pred_result, train_labels)
+    print('Train error rate: ' + str(train_error_rate))
+    print('Done calculating train error rate')
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
+    print()
+
+    # Prediction result on test data
+    test_pred_result = predict_affine(test_data, bias, weights)
+
+    # Calculate test_error_rate
+    test_error_rate = compute_error_rate(test_pred_result, test_labels)
+    print('Test error rate: ' + str(test_error_rate))
+    print('Done calculating test error rate')
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
+    print()
+
+    # Determine the most positive and negative words, 20 each
     zipped_top, zipped_bottom = get_top_and_bottom_words(weights, word_list)
-    print('Top words and weights:')
+    print('Most positive words, descendingly ordered based on the absolute weight value:')
     for tup in zipped_top:
         print(tup)
     print()
 
-    print('Bottom words and weights:')
+    print('Most negative words, descendingly ordered based on the absolute weight value:')
     for tup in zipped_bottom:
         print(tup)
+    print()
+
+    print('Done fetching the most positive and negative words')
+    print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
     print('----------------------------------------')
     print()
 
 if __name__ == '__main__':
-    # experiment_3a()
-    #
-    # experiment_3b()
+    run_experiment_3a()
 
-    experiment_3c()
+    run_experiment_3b()
+
+    run_experiment_3c()
