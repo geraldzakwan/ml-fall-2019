@@ -173,7 +173,12 @@ def predict_affine(feature_vectors, bias, weights):
 def get_top_and_bottom_words(weights, word_list, k=20):
     minus_k = (-1) * k
 
-    k_biggest_indexes = np.argpartition(weights, minus_k)[:minus_k]
+    k_biggest_indexes = np.argpartition(weights, minus_k)[minus_k:]
+    # k_biggest_indexes_slower = (-weights).argsort()[:k]
+
+    # print(np.sort(k_biggest_indexes))
+    # print(np.sort(k_biggest_indexes_slower))
+
     k_smallest_indexes = np.argpartition(weights, k)[:k]
 
     top_weights = np.take(weights, k_biggest_indexes)
@@ -184,7 +189,15 @@ def get_top_and_bottom_words(weights, word_list, k=20):
     top_words = np.take(word_list, k_biggest_indexes)
     bottom_words = np.take(word_list, k_smallest_indexes)
 
-    return top_words, top_weights, bottom_words, bottom_weights
+    # Zip vocab_index, word and their weight
+    zipped_top = [(k_biggest_indexes[i], top_words[i], top_weights[i]) for i in range(0, len(top_weights))]
+    zipped_bottom = [(k_smallest_indexes[i], bottom_words[i], bottom_weights[i]) for i in range(0, len(bottom_weights))]
+
+    # Return them in descending order of their absolute weight value
+    zipped_top = sorted(zipped_top, key=lambda x: x[2], reverse=True)
+    zipped_bottom = sorted(zipped_bottom, key=lambda x: x[2])
+
+    return zipped_top, zipped_bottom
 
 # Experiment for 20 labels
 def experiment_3a():
@@ -325,38 +338,35 @@ def experiment_3c():
     print('Elapsed time: ' + str(time.time() - start))
     print()
 
-    # Prediction result on train data
-    train_pred_result = predict_affine(train_data, bias, weights)
+    # # Prediction result on train data
+    # train_pred_result = predict_affine(train_data, bias, weights)
+    #
+    # # Calculate train_error_rate
+    # train_error_rate = compute_error_rate(train_pred_result, train_labels)
+    # print('Train error rate: ' + str(train_error_rate))
+    # print('Done calculating train error rate')
+    # print('Elapsed time: ' + str(time.time() - start))
+    # print()
+    #
+    # # Prediction result on test data
+    # test_pred_result = predict_affine(test_data, bias, weights)
+    #
+    # # Calculate test_error_rate
+    # test_error_rate = compute_error_rate(test_pred_result, test_labels)
+    # print('Test error rate: ' + str(test_error_rate))
+    # print('Done calculating test error rate')
+    # print('Elapsed time: ' + str(time.time() - start))
+    # print()
 
-    # Calculate train_error_rate
-    train_error_rate = compute_error_rate(train_pred_result, train_labels)
-    print('Train error rate: ' + str(train_error_rate))
-    print('Done calculating train error rate')
-    print('Elapsed time: ' + str(time.time() - start))
+    zipped_top, zipped_bottom = get_top_and_bottom_words(weights, word_list)
+    print('Top words and weights:')
+    for tup in zipped_top:
+        print(tup)
     print()
 
-    # Prediction result on test data
-    test_pred_result = predict_affine(test_data, bias, weights)
-
-    # Calculate test_error_rate
-    test_error_rate = compute_error_rate(test_pred_result, test_labels)
-    print('Test error rate: ' + str(test_error_rate))
-    print('Done calculating test error rate')
-    print('Elapsed time: ' + str(time.time() - start))
-    print()
-
-    top_words, top_weights, bottom_words, bottom_weights = get_top_and_bottom_words(weights, word_list)
-    print('Top words:')
-    print(top_words)
-    print()
-    print('Top weights:')
-    print(top_weights)
-    print()
-    print('Bottom words:')
-    print(bottom_words)
-    print()
-    print('Bottom weights:')
-    print(bottom_weights)
+    print('Bottom words and weights:')
+    for tup in zipped_bottom:
+        print(tup)
     print()
 
     print('----------------------------------------')
