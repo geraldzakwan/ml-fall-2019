@@ -150,8 +150,11 @@ def run_experiment(verbose=False):
         # I don't use error_rate == 0.0 as the condition in this case
         # to avoid floating value precision problem (if any)
         if false_preds == 0:
+            print('Iteration: ' + str(t))
+            print('False preds: ' + str(false_preds) + ' out of ' + str(len(train_data)) + ' data')
+            print('Error rate: ' + str(error_rate))
+            print('Elapsed time: ' + str(time.time() - start) + ' seconds')
             print('Error rate reaches zero, terminate training')
-            print('Total iterations: ' + str(t))
             print()
             break
 
@@ -164,6 +167,7 @@ def run_experiment(verbose=False):
         t = t + 1
 
     print('Done training')
+    print('Total iterations: ' + str(t))
     print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
@@ -172,7 +176,7 @@ def run_experiment(verbose=False):
     test_error_rate = compute_error_rate(test_pred_result, test_labels)
 
     print('Test error rate: ' + str(test_error_rate))
-    print('Done calculating test error rate: ')
+    print('Done calculating test error rate')
     print('Elapsed time: ' + str(time.time() - start) + ' seconds')
     print()
 
@@ -182,12 +186,28 @@ def run_experiment(verbose=False):
     # Determine the most positive and negative words, 20 each
     zipped_top, zipped_bottom = get_top_and_bottom_words(weights, word_list)
     print('Most positive words, descendingly ordered based on the absolute weight value:')
+    # for tup in zipped_top:
+    #     print(tup)
+    # print()
+
+    # Latex print
+    it = 0
     for tup in zipped_top:
+        it = it + 1
+        print(str(it) + ' & ' + tup[0] + ' & ' + tup[1] + ' & ' + tup[2])
         print(tup)
     print()
 
     print('Most negative words, descendingly ordered based on the absolute weight value:')
+    # for tup in zipped_bottom:
+    #     print(tup)
+    # print()
+
+    # Latex print
+    it = 0
     for tup in zipped_bottom:
+        it = it + 1
+        print(str(it) + ' & ' + tup[0] + ' & ' + tup[1] + ' & ' + tup[2])
         print(tup)
     print()
 
