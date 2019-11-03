@@ -186,30 +186,30 @@ def run_experiment(verbose=False):
     # Determine the most positive and negative words, 20 each
     zipped_top, zipped_bottom = get_top_and_bottom_words(weights, word_list)
     print('Most positive words, descendingly ordered based on the absolute weight value:')
-    # for tup in zipped_top:
-    #     print(tup)
-    # print()
-
-    # Latex print
-    it = 0
     for tup in zipped_top:
-        it = it + 1
-        print(str(it) + ' & ' + tup[0] + ' & ' + tup[1] + ' & ' + tup[2])
         print(tup)
     print()
+
+    # # Latex print
+    # it = 0
+    # for tup in zipped_top:
+    #     it = it + 1
+    #     print(str(it) + ' & ' + str(tup[0]) + ' & ' + str(tup[1]) + ' & ' + str(tup[2]) + '\\' + '\\')
+    #     print('\hline')
+    # print()
 
     print('Most negative words, descendingly ordered based on the absolute weight value:')
-    # for tup in zipped_bottom:
-    #     print(tup)
-    # print()
-
-    # Latex print
-    it = 0
     for tup in zipped_bottom:
-        it = it + 1
-        print(str(it) + ' & ' + tup[0] + ' & ' + tup[1] + ' & ' + tup[2])
         print(tup)
     print()
+
+    # # Latex print
+    # it = 0
+    # for tup in zipped_bottom:
+    #     it = it + 1
+    #     print(str(it) + ' & ' + str(tup[0]) + ' & ' + str(tup[1]) + ' & ' + str(tup[2]) + '\\' + '\\')
+    #     print('\hline')
+    # print()
 
     print('Done fetching the most positive and negative words')
     print('Elapsed time: ' + str(time.time() - start) + ' seconds')
