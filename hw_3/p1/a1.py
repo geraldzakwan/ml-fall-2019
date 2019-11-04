@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 def load_csv_to_ndarray(filepath):
     # Read using numpy lib and return all rows, no header in this case
@@ -65,6 +64,7 @@ def run_experiment_1a():
 
     # By default, Mac OS X can't directly render matplotlib
     # To use matplotlib, please use Jupyter Notebook or set the backend properly (https://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python)
+    # import matplotlib.pyplot as plt
 
     # fig = plt.figure(figsize=(10, 10))
     #
@@ -98,6 +98,7 @@ def run_experiment_1b():
 
     # By default, Mac OS X can't directly render matplotlib
     # To use matplotlib, please use Jupyter Notebook or set the backend properly (https://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python)
+    # import matplotlib.pyplot as plt
 
     # fig = plt.figure(figsize=(10, 10))
     #
