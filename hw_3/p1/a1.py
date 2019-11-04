@@ -72,6 +72,8 @@ def run_experiment_1a():
     # plt.plot(test_df, test_pred_result, color='pink', linewidth=1, marker='o', markersize=3, mfc='white', mec='black')
     #
     # plt.savefig('1a.png', bbox_inches='tight')
+    # 
+    # plt.show()
 
 def run_experiment_1b():
     train_df = load_csv_to_ndarray('hw3p1_train.csv')
@@ -103,9 +105,9 @@ def run_experiment_1b():
     # fig = plt.figure(figsize=(10, 10))
     #
     # plt.title('Minimum Weighted Euclidean Plot')
-    # plt.plot(test_df, test_pred_result, color='pink', linewidth=1, marker='o', markersize=3, mfc='white', mec='black')
+    # plt.savefig('1b.png', bbox_inches='tight')
     #
-    # plt.savefig('1a.png', bbox_inches='tight')
+    # plt.show()
 
 if __name__ == '__main__':
     run_experiment_1a()
