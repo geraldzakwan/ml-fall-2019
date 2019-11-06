@@ -192,6 +192,52 @@ def compute_w_weighted(use_pinv=True):
     #
     # plt.show()
 
+def compute_w_weighted_1(use_pinv=True):
+    print('Experiment 1b: ')
+    print()
+
+    train_df = load_csv_to_ndarray('hw3p1_train.csv')
+    test_df = load_csv_to_ndarray('hw3p1_test.csv')
+
+    one_dim_feature_vector = train_df[:,0]
+    label_vector = train_df[:,1]
+
+    feature_matrix = transform_feature(one_dim_feature_vector)
+    weighted_feature_matrix = transform_feature(one_dim_feature_vector, True)
+
+    sol = compute_min_euclidean_norm_solution(weighted_feature_matrix, label_vector, use_pinv)
+    print(sol[0:16])
+    print(sol[240:256])
+
+    print('Norm:')
+    print(np.linalg.norm(sol))
+
+    test_feature_matrix = transform_feature(test_df)
+    test_pred_result = np.dot(test_feature_matrix, sol)
+
+    print('Mean squared loss: ')
+    print(calculate_squared_loss(np.dot(feature_matrix, sol), label_vector))
+    print()
+
+    print('Number of nonzero entries:')
+    print(count_nonzero_entries(sol))
+    print()
+
+    print('--------------------------------')
+
+    # By default, Mac OS X can't directly render matplotlib
+    # To use matplotlib, please use Jupyter Notebook or set the backend properly (https://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python)
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(figsize=(10, 10))
+
+    plt.title('Minimum Weighted Euclidean Plot')
+    plt.plot(test_df, test_pred_result, color='pink', linewidth=1, marker='o', markersize=3, mfc='white', mec='black')
+
+    plt.savefig('1b_1.png', bbox_inches='tight')
+
+    plt.show()
+
 def compute_w_dantzig():
     print('Experiment 1c: ')
     print()
@@ -204,16 +250,15 @@ def compute_w_dantzig():
 
     feature_matrix = transform_feature(one_dim_feature_vector)
 
-    # weights: [ceil(1/2), ceil(2,2), ...], size: 256
+    # 256
     weights, _ = create_weights_diagonal_matrix()
 
-    # Size: 512
+    # 512
     appended_weights = np.zeros(2*2*128)
 
-    # This is the linear objective function
     # First 256 is for w, last 256 for v
-    # Give zero weights to w (first 256) because
-    # we care only about sum(abs(w)), i.e. sum(v)
+    # Give zero weights to w
+    # We care about sum(abs(w)), i.e. sum(v)
     appended_weights[2*128:2*2*128] = weights
 
     # Equality constraint
@@ -222,11 +267,13 @@ def compute_w_dantzig():
     A_eq = np.dot(feature_matrix.transpose(), feature_matrix)
     # Add 256 more zero columns to fit for v
     A_eq = np.hstack((A_eq, np.zeros((2*128, 2*128))))
-
+    print(A_eq.shape)
     # Label vector stay as is, A^tb will have shape 256
     b_eq = np.dot(feature_matrix.transpose(), label_vector)
+    print(b_eq.shape)
 
     # Inequality constraint
+
     # Each pair of v and w needs to follow: - w - v <= 0 and w - v <= 0
     A_ub = np.zeros((512, 512))
     for i in range(0, int(len(A_ub)/2)):
@@ -238,33 +285,21 @@ def compute_w_dantzig():
         A_ub[(2*i)+1][i] = 1
         A_ub[(2*i)+1][i+256] = -1
 
-    # Upper bound for w and v
+    # Upper bound <= 0
     b_ub = np.zeros(512)
 
+    # No need to set bound for v, because the default is nonnegative
     # Set bound for w from -inf to inf (None, None)
-    # Set bound for v from 0 to inf (0, None) -> absolute value, non-negative
+    # Set bound for v from 0 to inf (0, None)
     bounds = []
     for i in range(0, 256):
         bounds.append((None, None))
     for i in range(0, 256):
         bounds.append((0, None))
 
-    # Call the linear programming solver with method revised simplex
     res = scipy.optimize.linprog(appended_weights, A_eq=A_eq, b_eq=b_eq, A_ub=A_ub, b_ub=b_ub, bounds=bounds, method='revised simplex')
 
-    # Get the solution from result object
     dantzig_sol = res.x[0:256]
-
-    print('First 16 elements: ')
-    print(dantzig_sol[0:16])
-    print()
-    print('Last 16 elements: ')
-    print(dantzig_sol[240:256])
-    print()
-
-    print('Norm:')
-    print(np.linalg.norm(dantzig_sol))
-    print()
 
     print('Mean squared loss: ')
     print(calculate_squared_loss(np.dot(feature_matrix, dantzig_sol), label_vector))
@@ -276,25 +311,18 @@ def compute_w_dantzig():
 
     print('--------------------------------')
 
-    # # By default, Mac OS X can't directly render matplotlib
-    # # To use matplotlib, please use Jupyter Notebook or set the backend properly (https://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python)
-    # import matplotlib.pyplot as plt
-    #
-    # test_feature_matrix = transform_feature(test_df)
-    # test_pred_result = np.dot(test_feature_matrix, dantzig_sol)
-    #
-    # fig = plt.figure(figsize=(10, 10))
-    #
-    # plt.title('Dantzig Selector Euclidean Plot')
-    # plt.plot(test_df, test_pred_result, color='pink', linewidth=1, marker='o', markersize=3, mfc='white', mec='black')
-    #
-    # plt.savefig('1c.png', bbox_inches='tight')
-    #
-    # plt.show()
+    # By default, Mac OS X can't directly render matplotlib
+    # To use matplotlib, please use Jupyter Notebook or set the backend properly (https://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python)
+    import matplotlib.pyplot as plt
 
-if __name__ == '__main__':
-    compute_w_euclid()
+    test_feature_matrix = transform_feature(test_df)
+    test_pred_result = np.dot(test_feature_matrix, dantzig_sol)
 
-    compute_w_weighted()
+    fig = plt.figure(figsize=(10, 10))
 
-    compute_w_dantzig()
+    plt.title('Dantzig Selector Euclidean Plot')
+    plt.plot(test_df, test_pred_result, color='pink', linewidth=1, marker='o', markersize=3, mfc='white', mec='black')
+
+    plt.savefig('1c.png', bbox_inches='tight')
+
+    plt.show()
