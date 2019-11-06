@@ -200,10 +200,10 @@ def get_top_and_bottom_words(weights, word_list, k=20):
     return zipped_top, zipped_bottom
 
 # Experiment for 20 labels
-def run_experiment_3a():
+def run_experiment_2a():
     start = time.time()
 
-    print('Experiment 3a: ')
+    print('Experiment 2a: ')
     print()
 
     # Get the data
@@ -248,10 +248,10 @@ def run_experiment_3a():
     print()
 
 # Experiment for binary labels
-def run_experiment_3b():
+def run_experiment_2b():
     start = time.time()
 
-    print('Experiment 3b: ')
+    print('Experiment 2b: ')
     print()
 
     # Get the data
@@ -272,7 +272,7 @@ def run_experiment_3b():
     assert check_sum_probability(label_prob)
 
     # Calculate miu_y_j, i.e. the word probability
-    # The difference from experiment 3a is than the train_labels is not sorted
+    # The difference from experiment 2a is than the train_labels is not sorted
     word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, False)
     print('Done calculating word prob')
     print('Elapsed time: ' + str(time.time() - start) + ' seconds')
@@ -302,10 +302,10 @@ def run_experiment_3b():
     print()
 
 # Experiment for binary labels with affine function
-def run_experiment_3c():
+def run_experiment_2c():
     start = time.time()
 
-    print('Experiment 3c: ')
+    print('Experiment 2c: ')
     print()
 
     # Get the data
@@ -326,7 +326,7 @@ def run_experiment_3c():
     assert check_sum_probability(label_prob)
 
     # Calculate miu_y_j, i.e. the word probability
-    # The difference from experiment 3a is than the train_labels is not sorted
+    # The difference from experiment 2a is than the train_labels is not sorted
     word_prob = calculate_word_given_label_prob(train_data, train_labels, label_count, word_list, False)
     print('Done calculating word prob')
     print('Elapsed time: ' + str(time.time() - start) + ' seconds')
@@ -394,8 +394,8 @@ def run_experiment_3c():
     print()
 
 if __name__ == '__main__':
-    run_experiment_3a()
+    run_experiment_2a()
 
-    run_experiment_3b()
+    run_experiment_2b()
 
-    run_experiment_3c()
+    run_experiment_2c()
