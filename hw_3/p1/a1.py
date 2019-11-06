@@ -128,6 +128,7 @@ def run_experiment_1b(use_pinv=False):
 
     # Stack feature_matrix with weights_diagonal
     weighted_feature_matrix = np.vstack((feature_matrix, weights_diagonal_matrix))
+    print(weighted_feature_matrix.shape)
 
     # Pad label_vector with zeros
     padded_label_vector = np.zeros(2*128 + len(label_vector))
