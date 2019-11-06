@@ -352,7 +352,11 @@
     We know that $v_1, ..., v_d$ are orthonormal, then $v_1, ..., v_r$ are also orthonormal since it is a subset of $v_1, ..., v_d$. Hence, for all pairs of $(j,k)$, the dot product $v_j^Tv_k$ is zero and that makes:
     $$ u_j^Tu_k = \frac{{\lambda}_k(0)}{\sqrt{{\lambda}_j\lambda_k}} = 0$$
     Since for all pairs of $(j,k)$, we have $u_j^Tu_k = 0$, then it is proved that $u_1, ..., u_r$ are orthonormal.
-    \item[e.]
+    \item[e.] Suppose that for $i=1,...,d$:
+    $$Mq_i=M'q_i=q'_i \text{, where } q'_i \in \mathcal{R}^N$$
+    Assume that matrix $M$ is nonsingular, then using the fact that $q_1,...,q_d$ is a set of linearly independent vector, we know that $q'_1,...q'_d$ as a result of linear transformation, is also a set of linearly independent vector.
+    \newline\newline
+    Finally, since $q'_1,...q'_d$ is a set of linearly independent vector, then each $i$-th column in matrix M and M' will need to correspond to (have the same element values as) vector $q'_i$. Thus, it is proven that $M = M'$.
     \item[f.] Using claim in Part (e), we need to show that:
     $$Aq_i=(\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T)q_i \text{ for all } i=1,...,d$$
     If the above equation is proved, then A is proved to be the same as its decomposed value $\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T$. $q_1, ..., q_d$ is a set of a linearly independent vector. In this case, we can use the set of orthonormal eigenvectors $v_1, ..., v_d$ as our $q_1, ..., q_d$ since it is also a set of linearly independent vector.
