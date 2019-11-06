@@ -7,7 +7,7 @@
 \DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \newcommand\Myperm[2][^n]{\prescript{#1\mkern-2.5mu}{}P_{#2}}
 
-\studname{Name: Geraldi Dzakwan (gd2551). Discussants: }
+\studname{Name: Geraldi Dzakwan (gd2551). Discussants: Deka (da2897), Patricia (pk2618)}
 % \studmail{Discussants: Deka (da2897), Patricia (pk2618)}
 \coursename{COMS W4771: Machine Learning (sec:001)}
 \hwNo{3}
@@ -393,18 +393,46 @@
     $$2I(Y-\theta)=0 \xrightarrow{} 2(Y-\theta)=0 \xrightarrow{} Y-\theta=0$$
     Hence, the $\theta_{MLE}$ is
     $$\boldsymbol{\theta_{MLE}=Y=(y_1, y_2, ..., y_n)}$$
-    \item [b.] The prior distribution ($\mu=0$, $\sigma^2=\tau$):
-    $$P(\theta)=\frac{1}{\sigma\sqrt{2\pi}}\text{exp}(-\frac{(\theta-\mu)^2}{2\sigma^2})$$
-    $$P(\theta)=\frac{1}{\tau\sqrt{2\pi}}\text{exp}(-\frac{\theta^2}{2\tau})$$
-    The likelihood ($\mu_i=\theta$, $\sigma_i^2=1$):
-    $$P(y_1,...,y_n|\theta)=\sum_{i=1}^n\frac{1}{\sigma_i\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\mu_i)^2}{2\sigma_i^2})$$
-    $$P(y_1,...,y_n|\theta)=\sum_{i=1}^n\frac{1}{\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\theta)^2}{2})$$
-    Finally, the posterior distribution will be:
-    $$P(\theta|y_)\propto\text{prior}(\theta)*\text{likelihood}(\theta)$$
-    $$P(\theta|y_)\propto$$
+    \item [b.] The prior distribution ($\mu_i=0$, $\sigma^2_i=\tau$):
+    $$P(\theta_i)=\frac{1}{\sigma_i\sqrt{2\pi}}\text{exp}(-\frac{(\theta_i-\mu_i)^2}{2\sigma_i^2})$$
+    $$P(\theta_i)=\frac{1}{\sqrt{2\pi\tau}}\text{exp}(-\frac{\theta_i^2}{2\tau})$$
+    The likelihood ($\mu_i=\theta_i$, $\sigma_i^2=1$):
+    $$P(y_i|\theta_i)=\frac{1}{\sigma_i\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\mu_i)^2}{2\sigma_i^2})$$
+    $$P(y_i|\theta_i)=\frac{1}{\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\theta_i)^2}{2})$$
+    Then, the joint distribution will be:
+    $$P(\theta_i,y_i)={}P(\theta_i)*P(y_i|\theta_i)$$
+    $$P(\theta_i,y_i)={}\frac{1}{\sqrt{2\pi\tau}}\text{exp}(-\frac{\theta_i^2}{2\tau})*\frac{1}{\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\theta_i)^2}{2})$$
+    $$P(\theta_i,y_i)={}\frac{1}{2\pi\sqrt{\tau}}\text{exp}(-\frac{\theta_i^2}{2\tau}-\frac{(y_i-\theta_i)^2}{2})$$
+    $$P(\theta_i,y_i)={}\frac{1}{2\pi\sqrt{\tau}}\text{exp}(-\frac{\theta_i^2+\tau(y_i-\theta_i)^2}{2\tau})$$
+    $$P(\theta_i,y_i)={}\frac{1}{2\pi\sqrt{\tau}}\text{exp}(-\frac{\theta_i^2(1+\tau)-2\tau\theta_iy_i+\tau{}y_i^2}{2\tau})$$
+    $$P(\theta_i,y_i)={}\frac{1}{2\pi\sqrt{\tau}}\text{exp}(-\frac{\theta_i^2-\frac{2\tau}{(1+\tau)}\theta_iy_i+\frac{\tau}{(1+\tau)}y_i^2}{\frac{2\tau}{(1+\tau)}})$$
+    $$P(\theta_i,y_i)={}\frac{1}{2\pi\sqrt{\tau}}\text{exp}(-\frac{(\theta_i-\frac{\tau}{(1+\tau)}y_i)^2+\frac{\tau}{(1+\tau)^2}y_i^2}{\frac{2\tau}{(1+\tau)}})$$
+    $$P(\theta_i,y_i)={}\frac{1}{2\pi\sqrt{\tau}}\text{exp}(-\frac{(\theta_i-\frac{\tau}{(1+\tau)}y_i)^2}{\frac{2\tau}{(1+\tau)}})\text{exp}(-\frac{y_i^2}{2(1+\tau)})$$
+    $$P(\theta_i,y_i)={}\frac{1}{\sqrt{2\pi\frac{\tau}{1+\tau}}}\text{exp}(-\frac{(\theta_i-\frac{\tau}{(1+\tau)}y_i)^2}{\frac{2\tau}{(1+\tau)}})\frac{1}{\sqrt{2\pi(1+\tau)}}\text{exp}(-\frac{y_i^2}{2(1+\tau)})$$
+    From the above result, the posterior distribution is given by:
+    $$P(\theta_i|y_i)=\frac{1}{\sqrt{2\pi\frac{\tau}{1+\tau}}}\text{exp}(-\frac{(\theta_i-\frac{\tau}{(1+\tau)}y_i)^2}{\frac{2\tau}{(1+\tau)}})$$
+    Hence, $P(\theta_i|y_i)$ is a univariate Gaussian distribution with mean = $\frac{\tau}{1+\tau}y_i$ and variance = $\frac{\tau}{1+\tau}$. Finally, $P(\theta|Y)$ is a multivariate Gaussian distribution with:
+    \begin{itemize}
+        \item [1.] Mean vector = $\boldsymbol{\frac{\tau}{1+\tau}Y=\frac{\tau}{1+\tau}(y_1, y_2, ..., y_n)}$
+        \item [2.] Covariance matrix = $\boldsymbol{\frac{\tau}{1+\tau}I}$
+    \end{itemize}
+    \newpage
+    \item [c.] Looking at the result from Part (b), the marginal distribution is given by:
+    $$P(y_i)=\frac{1}{\sqrt{2\pi(1+\tau)}}\text{exp}(-\frac{y_i^2}{2(1+\tau)})$$
+    $$P(y_i)=\frac{1}{\sqrt{2\pi(1+\tau)}}\text{exp}(-\frac{(y_i-0)^2}{2(1+\tau)})$$
+    Hence, $P(y_i)$ is a univariate Gaussian distribution with mean = $0$ and variance = $1+\tau$. Finally, $P(Y)$ is a multivariate Gaussian distribution with:
+    \begin{itemize}
+        \item [1.] Mean vector = $\boldsymbol{0}$
+        \item [2.] Covariance matrix = $\boldsymbol{(1+\tau)I}$
+    \end{itemize}
 \end{itemize}
 
 \end{document}
+
+\begin{itemize}
+    \item [1.] Mean = $\frac{\tau}{\tau+1}y_i$
+    \item [2.] Variance = $\frac{\tau}{\tau+1}$
+\end{itemize}
 
 \item [a.] The probability density function for Y would be:
     $$P(Y;\theta,I)=\frac{1}{(2\pi)^{n/2}|I|^{1/2}}\text{exp}(-\frac{1}{2}(y-\theta)^TI^{-1}(y-\theta))$$
