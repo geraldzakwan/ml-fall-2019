@@ -17,9 +17,7 @@
 
 \section*{Problem 1}
 \begin{itemize}
-    \item [a.] Function name: \boldsymbol{compute\_min\_euclidean\_norm\_solution} in file p1/a1.py. This function will take feature matrix A, shape: (32, 256), and b, shape: (32), as the input. Thus, the feature map needs to be applied to the original A, shape: (32,1), before the function takes A as its input. Then, it computes the minimum Euclidean norm solution using the Moore Penrose inverse. This is as suggested in Problem 4. This function is called in a bigger function \boldsymbol{compute\_euclid} that also does other things like plotting the solution on test data.
-    \newline\newline
-    List of subfunctions/subroutines and external software libraries used:
+    \item [a.] Function name: \boldsymbol{compute\_min\_euclidean\_norm\_solution} in file p1/a1.py. This function will take feature matrix A, shape: (32, 256), and b, shape: (32), as the input. Thus, the feature map needs to be applied to the original A, shape: (32,1), before the function takes A as its input. Then, it computes the minimum Euclidean norm solution using the Moore Penrose inverse. This is as suggested in Problem 4. This function is called in a bigger function \boldsymbol{compute\_euclid} that also does other things like plotting the solution on test data. List of subfunctions/subroutines and external software libraries used:
     \begin{itemize}
         \item [1.] To transform the feature vector A of shape (32,1) to shape (32,256), subfunction \boldsymbol{transform\_feature} is used. This subfunction basically takes A and transform each row in A from dimension 1 to dimension 256 using the feature map described in the problem.
         \item [2.] Next, compute the Moore Penrose inverse of matrix A using the library \textbf{numpy.linalg.pinv}, numpy version: 1.15.1.
@@ -29,8 +27,8 @@
     \begin{itemize}
         \item [1.] Since A has full row rank, I also try to use another way to find the minimum Euclidean norm by using \boldsymbol{numpy.lstsq} and it yields the same result. The differences of the Euclidean norm of the solution and the error rate on training data for both methods are less than 1e-10.
         \item [2.] To use numpy lstsq, two inputs are needed, which are $A^TA$ of shape (256, 256) and $A^Tb$ of shape (256). They are respectively the left hand side (excluding the solution $w$) and the right hand side of the normal equation.
+        \item [3.] But, the default method used in the function \textit{compute\_min\_euclidean\_norm\_solution} is the Moore Penrose inverse as it can accommodate all types of matrices, including those that don't have full row rank. This is implemented in the function as default param: \textit{use\_pinv=True}.
     \end{itemize}
-    \clearpage
     \item [b.] The plot for $(\~x_i,\hat{f}_{Euclid}(\~x_i))$ for $i=1,...,m$ is as below (Figure 1). The points are depicted as dots with black edge and white fill. The pink lines connect consecutive dots/points, e.g. $\~x_1 \text{ to } \~x_2, \~x_2 \text{ to } \~x_3$, etc. The plotted points are very scattered.
         \begin{figure}[H]
             \includegraphics[scale=0.6]{1a.png}
@@ -357,27 +355,58 @@
     \item[e.]
     \item[f.] Using claim in Part (e), we need to show that:
     $$Aq_i=(\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T)q_i \text{ for all } i=1,...,d$$
-    If the above equation is proved, then A is proved to be the same as its decomposed value $\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T$. $q_1, ..., q_d$ is a set of a linearly independent vector. In this case, we can use the set of orthonormal eigenvectors $v_1, ..., v_d$ as it is also a set of linearly independent vector.
+    If the above equation is proved, then A is proved to be the same as its decomposed value $\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T$. $q_1, ..., q_d$ is a set of a linearly independent vector. In this case, we can use the set of orthonormal eigenvectors $v_1, ..., v_d$ as our $q_1, ..., q_d$ since it is also a set of linearly independent vector.
     \newline\newline
-    We first start checking the left term $Aq_i\xrightarrow{}Av_i$. For each $v_i$, there will be two cases:
+    We first start checking the left term $Aq_i\xrightarrow{}Av_i$. For each $i$, there will be two cases:
     \begin{itemize}
-        \item[1.] For nonzero eigenvalues, i.e. for $1\leq{j}\leq{r}$. From Equation 3 in Part(d), we will have $Av_i = \sqrt{\lambda}_iu_i$.
+        \item[1.] For nonzero eigenvalues, i.e. for $1\leq{i}\leq{r}$. From Equation 3 in Part(d), we will have $ u_i = \frac{Av_i}{\sqrt{{\lambda}_i}} \xrightarrow{} Av_i = \sqrt{\lambda}_iu_i$.
         \item[2.] For zero eigenvalues, i.e. for $r<i\leq{d}$. We will have $ Av_i = 0$.
     \end{itemize}
     Next, we check the right term.
-    $$(\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T)v_i = \sum_{j=1}^r\sqrt{{\lambda}_j}(v_i, v_j)u_j$$
+    $$(\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T)q_i = (\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T)v_i = \sum_{j=1}^r\sqrt{{\lambda}_j}(v_i^Tv_j)u_j$$
+    For each $i$, again, there will be two cases:
     \begin{itemize}
-        \item[1.] For nonzero eigenvalues, i.e. for $1\leq{j}\leq{r}$. From Equation 3 in Part(d), we will have $Av_i = \sqrt{\lambda}_iu_i$.
-        \item[2.] For zero eigenvalues, i.e. for $r<i\leq{d}$. We will have $ Av_i = 0$.
+        \item[1.] For nonzero eigenvalues, i.e. for $1\leq{i}\leq{r}$. Since $v_1, ..., v_r$ are orthonormal, then the dot product between $v_i$ and $v_j$ is zero except for $j=i$. Moreover, when $j=i$, $v_i^Tv_i=1^2=1$ since every $v$ is a unit vector. Thus, we will have: $$\sum_{j=1}^r\sqrt{{\lambda}_j}(v_i^Tv_j)u_j = (r-1)0 + \sqrt{\lambda_i}(v_i^Tv_i)u_i=\sqrt{\lambda_i}u_i$$
+        \item[2.] For zero eigenvalues, i.e. for $r<i\leq{d}$. We will have $\sum_{j=1}^r\sqrt{{\lambda}_j}(v_i^Tv_j)u_j = 0$ as $v_i$ is a zero vector.
     \end{itemize}
-    Thus, because $Av_i=(\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T)v_i$ for $i=1,...,d$ where $v_1,...,v_d$ is a set of linearly independent vector, then it is proven that:
+    Finally, because $Av_i=(\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T)v_i$ for $i=1,...,d$ where $v_1,...,v_d$ is a set of linearly independent vector, then it is proven that:
     $$A=\sum_{j=1}^r\sqrt{{\lambda}_j}u_j{v_j}^T$$.
 \end{itemize}
 \newpage
 
 \section*{Problem 5}
 \begin{itemize}
-    \item [a.] The probability density function for Y would be:
+    \item [a.] The likelihood for $\theta$ given $Y$ would be:
+    $$L(\theta|Y)=P(Y|\theta)=\frac{1}{(2\pi)^{n/2}|I|^{1/2}}\text{exp}(-\frac{1}{2}(Y-\theta)^TI^{-1}(Y-\theta))$$
+    where $|I|^{1/2}=det(I)^{1/2}=1^{1/2}=1$ and $I^{-1}=I$. Thus:
+    $$L(\theta|Y)=P(Y|\theta)=\frac{1}{(2\pi)^{n/2}}\text{exp}(-\frac{1}{2}(Y-\theta)^TI(Y-\theta))$$
+    The log likelihood:
+    $$\text{ln}L(\theta|Y)=\text{ln}(\frac{1}{(2\pi)^{n/2}}\text{exp}(-\frac{1}{2}(Y-\theta)^TI(Y-\theta)))$$
+    $$\text{ln}L(\theta|Y)=\text{ln}({2\pi}^{-n/2})+\text{ln}(\text{exp}(-\frac{1}{2}(Y-\theta)^TI(Y-\theta)))$$
+    $$\text{ln}L(\theta|Y)=-\frac{n}{2}\text{ln}(2\pi)-\frac{1}{2}(Y-\theta)^TI(Y-\theta)$$
+    To find $\theta_{MLE}$, we take the first derivative w.r.t to $\theta$ and find $\theta$ that makes it zero:
+    $$\frac{d}{d\theta}\text{ln}L(\theta|Y)=0$$
+    $$\frac{d}{d\theta}(-\frac{n}{2}\text{ln}(2\pi)-\frac{1}{2}(Y-\theta)^TI(Y-\theta))=0$$
+    $$0-(\frac{1}{2})\frac{d}{d\theta}((Y-\theta)^TI(Y-\theta))=0$$
+    $$\frac{d}{d\theta}((Y-\theta)^TI(Y-\theta))=0$$
+    We can use the fact that $\mathbf{ \frac{\partial w^T A w}{\partial w} = 2Aw}$ in this case since $w=(Y-\theta)$ is not dependent on $A=I$ and $I$ is an identity matrix that is symmetric. Then:
+    $$2I(Y-\theta)=0 \xrightarrow{} 2(Y-\theta)=0 \xrightarrow{} Y-\theta=0$$
+    Hence, the $\theta_{MLE}$ is
+    $$\boldsymbol{\theta_{MLE}=Y=(y_1, y_2, ..., y_n)}$$
+    \item [b.] The prior distribution ($\mu=0$, $\sigma^2=\tau$):
+    $$P(\theta)=\frac{1}{\sigma\sqrt{2\pi}}\text{exp}(-\frac{(\theta-\mu)^2}{2\sigma^2})$$
+    $$P(\theta)=\frac{1}{\tau\sqrt{2\pi}}\text{exp}(-\frac{\theta^2}{2\tau})$$
+    The likelihood ($\mu_i=\theta$, $\sigma_i^2=1$):
+    $$P(y_1,...,y_n|\theta)=\sum_{i=1}^n\frac{1}{\sigma_i\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\mu_i)^2}{2\sigma_i^2})$$
+    $$P(y_1,...,y_n|\theta)=\sum_{i=1}^n\frac{1}{\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\theta)^2}{2})$$
+    Finally, the posterior distribution will be:
+    $$P(\theta|y_)\propto\text{prior}(\theta)*\text{likelihood}(\theta)$$
+    $$P(\theta|y_)\propto$$
+\end{itemize}
+
+\end{document}
+
+\item [a.] The probability density function for Y would be:
     $$P(Y;\theta,I)=\frac{1}{(2\pi)^{n/2}|I|^{1/2}}\text{exp}(-\frac{1}{2}(y-\theta)^TI^{-1}(y-\theta))$$
     where $|I|^{1/2}=det(I)^{1/2}=1^{1/2}=1$ and $I^{-1}=I$. Thus:
     $$P(Y;\theta,I)=\frac{1}{(2\pi)^{n/2}(1)}\text{exp}(-\frac{1}{2}(y-\theta)^TI(y-\theta))$$
@@ -408,9 +437,6 @@
     Finally, the posterior distribution will be:
     $$P(\theta|y_)\propto\text{prior}(\theta)*\text{likelihood}(\theta)$$
     $$P(\theta|y_)\propto$$
-\end{itemize}
-
-\end{document}
 
 The likelihood ($\mu_i=\theta_i$, $\sigma_i^2=1$):
     $$\text{likelihood}(\theta_i)=p(y_i)*\frac{1}{\sigma_i\sqrt{2\pi}}\text{exp}(-\frac{(y_i-\mu_i)^2}{2\sigma_i^2})$$
