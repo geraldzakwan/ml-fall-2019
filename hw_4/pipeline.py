@@ -150,9 +150,12 @@ def train_and_eval(df, train_df):
 
     y_pred = clf.predict(X_train)
 
-    return mean_squared_error(y_train, y_pred)
+    print('Mean: ' + str(np.mean(y_pred)))
+    print('Variance: ' + str(np.var(y_pred)))
 
-def main_1():
+    return clf, mean_squared_error(y_train, y_pred)
+
+def main_1(model_name):
     df = pd.read_csv('hw4-trainingset-gd2551.csv')
     df = df.drop(['uni', 'row'] + get_excluded_features(), axis=1)
 
@@ -165,7 +168,55 @@ def main_1():
 
     df, train_df = prepare_train(df, incl_num_cols, incl_cat_cols)
 
-    print(train_and_eval(df, train_df))
+    clf, mse = train_and_eval(df, train_df)
+
+    print('MSE: ' + str(mse))
+
+    with open(model_name, 'wb') as outfile:
+        pickle.dump(clf, outfile)
+
+    return df.columns
+
+def main_2(model_name, train_cols):
+    df = pd.read_csv('hw4-testset-gd2551.csv')
+    df = df.drop(['uni', 'row'] + get_excluded_features(), axis=1)
+
+    # Impute columns simply with mode
+    df = df.fillna(df.mode().iloc[0])
+
+    df, incl_num_cols = get_included_numeric_columns(df)
+
+    df, incl_cat_cols = get_included_cat_cols(df, incl_num_cols)
+
+    for missing_col in list(set(train_cols).difference(set(df.columns))):
+        df[missing_col] = np.zeros(24500, dtype='int')
+
+    df = df[train_cols]
+
+    X_test = df.drop(['job_performance'], axis=1).values
+
+    with open(model_name, 'rb') as infile:
+        clf = pickle.load(infile)
+
+    y_pred = clf.predict(X_test)
+
+    print('Mean: ' + str(np.mean(y_pred)))
+    print('Variance: ' + str(np.var(y_pred)))
+
+    return df.columns
 
 if __name__ == '__main__':
-    main_1()
+    x = main_1('test_model.pickle')
+    a = main_2('test_model.pickle', x)
+
+    # print('NUMS')
+    print(set(x).difference(set(a)))
+    # print('----')
+    # print(set(a).difference(set(x)))
+    # print('----')
+    #
+    # print('CATS')
+    # print(set(y).difference(set(b)))
+    # print('----')
+    # print(set(b).difference(set(y)))
+    # print('----')
