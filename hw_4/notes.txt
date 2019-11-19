@@ -1,0 +1,37 @@
+700 - 4500
+
+< 1000 cmn 4 -> Female Israel smua, banyak NaN
+
+Selected Feature
+
+cntry_id
+age_r
+gender_r
+
+One Hot encoding blom coba
+
+sekarang 2500 - 3500 majority, bagus hasilnya
+
+bisa 45000 MSE kalo evaluate di 2500-3500 trus df.mean()nya pake itu doang
+Kalo df.mean() semua kira" 83000
+kalo eval smua lebih jelek (iyalah)
+
+Key takeaway:
+
+- Data 75% di 2500 - 3500
+- Replace missing value based on ini aja?
+
+Weighted sampling sulit jg, kalo based on job performance ngk ngangkat
+Coba based on gender, kaya suggested di sample selection bias
+
+Feature selectionnya sulit, pilih 60 yg unrelated aja masih 100k ke atas (cleaning-Copy1)
+
+Di test seimbang male female -> 12.1k vs 12.3k (banyakan Female malah)
+Drop 40% male
+
+Kalo dah drop male, pake 200 column aja cukup
+Slice di cols[0:50] paling bagus
+
+TO DO:
+Normalization -> Year
+# df = df.drop(['isco1l', 'isco2l', 'v224', 'v105'], axis=1)
