@@ -84,8 +84,14 @@ def get_included_cat_cols(df, incl_num_cols):
 
     incl_cat_cols = []
     for col in cat_col:
-        if len(df[col].unique()) < 11:
+        if 'v' in col and col != 'vet' and len(col) < 5:
+            if len(df[col].unique()) < 11:
+                incl_cat_cols.append(col)
+        else:
             incl_cat_cols.append(col)
+    # for col in cat_col:
+    #     if len(df[col].unique()) < 11:
+    #             incl_cat_cols.append(col)
     #     incl_cat_cols.append(col)
 
     print('INCL COL')
@@ -99,7 +105,8 @@ def get_included_cat_cols(df, incl_num_cols):
 
 def prepare_train(df, incl_num_cols, incl_cat_cols):
     # Drop 40% of the males to obtain balance
-    sampling_percentage = 40
+    sampling_percentage = 0
+    # sampling_percentage = 40
     dropped_indexes = df[df['gender_r_Male'] == 1].sample(frac=float(sampling_percentage/100)).index
 
     with open('dropped_indexes_' + str(sampling_percentage) + '.pickle', 'wb') as outfile:
