@@ -1,0 +1,48 @@
+RF Median 40 dropped
+
+clf = RandomForestRegressor(max_depth = 20, min_samples_leaf = 25, min_samples_split = 50, n_estimators = 200, random_state = 28)
+
+NUM COL
+60
+ASU 1
+False
+INCL COL
+24
+CAT COL
+319
+INCL COL
+24
+There were 343 columns before encoding categorical features
+277
+100
+200
+There are 1249 columns after encoding categorical features
+15002
+1249
+20000
+1196
+{'fit_time': array([173.11608505, 173.41449308, 174.97766089, 176.02301717,
+       176.71896005, 177.28380227, 175.65056372, 176.85675216,
+       178.25272608, 180.48061299]), 'score_time': array([0.05294681, 0.05382419, 0.05214024, 0.05687904, 0.05454922,
+       0.05169201, 0.05222726, 0.0540657 , 0.05188608, 0.05671692]), 'test_score': array([-66451.18745024, -68267.76392067, -68204.35175603, -66156.14838668,
+       -66004.60203903, -70873.77984095, -60596.27125893, -63984.20522958,
+       -70384.90948193, -65408.20483371]), 'train_score': array([-50412.27682587, -50111.95951984, -50418.28612955, -50152.08605467,
+       -50369.51676431, -50281.0987923 , -51364.03158589, -51056.56123465,
+       -50165.4336965 , -50284.21725945])}
+Mean: 2907.6214155037123
+Variance: 83017.98212627353
+MSE: 53544.83114146017
+
+
+
+
+TEST:
+
+There were 343 columns before encoding categorical features
+281
+100
+200
+There are 1256 columns after encoding categorical features
+(array([    1,     2,     2, ..., 24498, 24498, 24498]), array([22, 19, 20, ..., 19, 20, 22]))
+Mean: 2697.8333600198393
+Variance: 60234.58234759759

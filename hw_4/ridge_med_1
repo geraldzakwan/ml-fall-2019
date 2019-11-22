@@ -1,0 +1,61 @@
+SCIKIT LEARN 0.19.3
+
+RIDGE
+
+Alpha 0.1
+
+There are 1154 columns after encoding categorical features
+15002
+1154
+20000
+1101
+Mean: 2911.201892605564
+Median: 2936.91971666377
+Variance: 110298.9488531599
+MSE: 76486.54236267184
+
+TEST:
+There are 1160 columns after encoding categorical features
+(array([    1,     2,     2, ..., 24498, 24498, 24498]), array([22, 19, 20, ..., 19, 20, 22]))
+Mean: 2562.1148878775984
+Median: 2584.889392036217
+Variance: 192455.53161733787
+
+
+LASSO
+
+Alpha 0.1
+Mean: 2911.1741952023795
+Variance: 105360.58930136997
+MSE: 77708.68773318014
+
+Alpha 1.0
+Mean: 2910.697367816138
+Variance: 87534.63459814152
+MSE: 85503.66107392797
+
+TEST:
+Alpha 0.1
+There are 1160 columns after encoding categorical features
+(array([    1,     2,     2, ..., 24498, 24498, 24498]), array([22, 19, 20, ..., 19, 20, 22]))
+Mean: 2674.5026296033725
+Variance: 193462.05196975125
+
+Alpha 1.0
+There are 1160 columns after encoding categorical features
+(array([    1,     2,     2, ..., 24498, 24498, 24498]), array([22, 19, 20, ..., 19, 20, 22]))
+Mean: 2601.008968311818
+Variance: 116261.97197325245
+
+
+LINREG
+
+Mean: 2911.1857203013114
+Variance: 111338.11372649614
+MSE: 76344.88084188239
+
+TEST
+There are 1160 columns after encoding categorical features
+(array([    1,     2,     2, ..., 24498, 24498, 24498]), array([22, 19, 20, ..., 19, 20, 22]))
+Mean: 2063.762400861422
+Variance: 221143.2188881011

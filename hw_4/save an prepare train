@@ -1,0 +1,33 @@
+def prepare_train(df, incl_num_cols, incl_cat_cols):
+    # Drop 40% of the males to obtain balance
+#     sampling_percentage = 0
+    sampling_percentage = 40
+#     dropped_indexes = df[df['gender_r_Male'] == 1].sample(frac=float(sampling_percentage/100), random_state = 28).index
+    dropped_indexes = df[df['gender_r'] == 1].sample(frac=float(sampling_percentage/100), random_state = 28).index
+
+    with open('dropped_indexes_' + str(sampling_percentage) + '.pickle', 'wb') as outfile:
+        # dump information to that file
+        pickle.dump(dropped_indexes, outfile)
+
+    train_df = df.drop(dropped_indexes)
+    print(len(train_df))
+    print(len(train_df.columns))
+    train_df = train_df[incl_num_cols + incl_cat_cols]
+
+    df = df[incl_num_cols + incl_cat_cols]
+    print(len(df))
+    print(len(df.columns))
+
+    return df, train_df
+
+Cross val SMOTE Ridge 0.5
+{'fit_time': array([ 8.48989511, 15.3252461 ,  9.25952005, 19.38551402,  9.20844102,
+       11.90251613,  9.869102  , 13.04109287, 10.4444828 , 12.23573613]), 'score_time': array([0.00542188, 0.00550675, 0.00459504, 0.003968  , 0.00688505,
+       0.00370812, 0.00578213, 0.00409389, 0.00420809, 0.0048089 ]), 'test_score': array([-82433.10543611, -85136.73883098, -86244.97708175, -90579.88530551,
+       -90001.15999889, -78024.33219161, -84359.82292669, -81080.22373748,
+       -68515.90102696, -72617.45701214]), 'train_score': array([-77836.33641526, -77302.31477933, -77284.764251  , -76680.3341493 ,
+       -76857.18184023, -78001.34736705, -77415.30467935, -77670.83856449,
+       -79535.18471323, -79242.49149047])}
+
+
+Cross val LASSO
